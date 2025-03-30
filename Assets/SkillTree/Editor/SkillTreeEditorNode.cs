@@ -14,6 +14,8 @@ namespace SkillTree.Editor
         VisualElement m_TitleContainer;
         Label m_TitleLabel;
 
+        private TransitionHandleManipulator _transitionHandleManipulator;
+
         public SkillTreeEditorNode(GraphView graphView = null) : base()
         {
             capabilities |= Capabilities.Movable | Capabilities.Deletable | Capabilities.Copiable |
@@ -24,6 +26,11 @@ namespace SkillTree.Editor
 
             CreateContainers(graphView);
             m_TitleContainer.Add(m_TitleLabel);
+
+            _transitionHandleManipulator = new TransitionHandleManipulator(this, graphView)
+            {
+                target = this
+            };
         }
 
         private void CreateContainers(GraphView graphView = null)
@@ -47,16 +54,25 @@ namespace SkillTree.Editor
 
     public class TransitionHandleManipulator : MouseManipulator
     {
-        private SkillTreeEditorNodeTransition currentTransition = null;
-        private SkillTreeEditorNode startNode = null;
+        private SkillTreeEditorNodeTransition _currentTransition = null;
+        private SkillTreeEditorNode _startNode = null;
+
+        private GraphView _graphView = null;
+
+        public TransitionHandleManipulator(SkillTreeEditorNode startNode = null, GraphView graphView = null)
+        {
+            _startNode = startNode;
+            _graphView = graphView;
+        }
 
         protected override void RegisterCallbacksOnTarget()
         {
             if (target == null) return;
-            
+
             target.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown));
-            target.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp));
-            target.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove));
+
+            _graphView?.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp));
+            _graphView?.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove));
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -64,62 +80,67 @@ namespace SkillTree.Editor
             if (target == null) return;
 
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
-            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
-            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+
+            _graphView?.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+            _graphView?.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
         }
 
         private void OnMouseUp(MouseUpEvent evt)
         {
-            if (currentTransition == null || evt.target is not SkillTreeEditorNode editorNode) return;
+            if (_currentTransition == null || _startNode == null) return;
 
-            if (evt.target is SkillTreeEditorNode endEditorNode && editorNode != startNode)
+            if (evt.target is SkillTreeEditorNode endEditorNode && endEditorNode != _startNode)
             {
-                currentTransition.Init(editorNode, endEditorNode);
-                Clear();
+                _currentTransition.Init(_startNode, endEditorNode);
+                if (_graphView is SkillTreeGraphView skillTreeGraphView)
+                {
+                    skillTreeGraphView.NodeTransitions.Add(_currentTransition);
+                }
+                _currentTransition = null;
                 evt.StopPropagation();
                 return;
             }
 
-            target.Remove(currentTransition);
             Clear();
         }
 
         private void OnMouseMove(MouseMoveEvent evt)
         {
-            if (currentTransition == null) return;
+            if (_currentTransition == null) return;
 
-            evt.StopPropagation();
+            evt.StopImmediatePropagation();
 
-            Vector2 pos = target.WorldToLocal(evt.mousePosition);
-            Vector2 offset = new Vector2(16, 16);
-            currentTransition.End = pos - offset / 2;
+            Vector2 pos = evt.mousePosition;
+            Vector2 offset = Vector2.one * 8.0f;
+            _currentTransition.End = _currentTransition.WorldToLocal(pos) - offset;
         }
 
         private void OnMouseDown(MouseDownEvent evt)
         {
             if (evt.clickCount != 2) return;
-            if (evt.target is not SkillTreeEditorNode editorNode) return;
-            
-            startNode = editorNode;
-            if (currentTransition != null)
+
+            if (_currentTransition != null)
             {
-                target.Remove(currentTransition);
+                Clear();
                 evt.StopPropagation();
                 return;
             }
 
-            Vector2 startPos = new Vector2(startNode.layout.x, startNode.layout.y) + new Vector2(startNode.resolvedStyle.width, startNode.resolvedStyle.height) / 2;
-            Vector2 endPos = target.WorldToLocal(evt.mousePosition);
-            
-            currentTransition = new SkillTreeEditorNodeTransition(startPos, endPos);
-            target.Add(currentTransition);
+            Vector2 startPos = new Vector2(_startNode.layout.x, _startNode.layout.y) +
+                new Vector2(_startNode.resolvedStyle.width, _startNode.resolvedStyle.height) / 2 - Vector2.one * 8.0f;
+            Vector2 endPos = evt.mousePosition;
+
+            _currentTransition = new SkillTreeEditorNodeTransition(startPos, endPos);
+            _graphView?.AddElement(_currentTransition);
             evt.StopPropagation();
         }
 
         private void Clear()
         {
-            startNode = null;
-            currentTransition = null;
+            if (_currentTransition == null) return;
+
+            _graphView?.RemoveElement(_currentTransition);
+            _currentTransition = null;
         }
     }
 }

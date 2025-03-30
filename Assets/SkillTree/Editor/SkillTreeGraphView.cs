@@ -11,7 +11,9 @@ namespace SkillTree.Editor
     {
         private SerializedObject _serializedObject;
         private SkillTreeAsset _skillTreeAsset;
-
+        
+        public List<SkillTreeEditorNodeTransition>  NodeTransitions { get; set; } =  new List<SkillTreeEditorNodeTransition>();
+        
         public SkillTreeEditorWindow EditorWindow { get; private set; }
         public Dictionary<string, SkillTreeEditorNode> NodeLookup { get; private set; }
         public List<SkillTreeEditorNode> SkillTreeNodes { get; private set; }
@@ -61,12 +63,6 @@ namespace SkillTree.Editor
         {
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
 
-            this.AddManipulator(new TransitionHandleManipulator() // Needs to be first order matters
-                {
-                    target = this
-                }
-            );
-            
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
