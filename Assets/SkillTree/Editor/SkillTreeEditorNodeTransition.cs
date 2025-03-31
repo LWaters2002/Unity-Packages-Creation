@@ -32,7 +32,7 @@ namespace SkillTree.Editor
             }
         }
 
-        
+
         public SkillTreeEditorNodeTransition()
         {
             style.position = Position.Absolute;
@@ -41,10 +41,11 @@ namespace SkillTree.Editor
             // Add a callback for custom drawing
             generateVisualContent += OnGenerateVisualContent;
         }
+
         public SkillTreeEditorNodeTransition(Vector2 start, Vector2 end)
         {
             style.position = Position.Absolute;
-            
+
             AddToClassList("skillTreeEditorNodeTransition");
 
             Start = start;
@@ -98,10 +99,10 @@ namespace SkillTree.Editor
             painter.Stroke();
 
             // Draw arrowhead (triangle pointing to "end")
-            Vector2 direction = (End - startPoint).normalized;
-            Vector2 arrowTip = End;
-            Vector2 arrowLeft = End - direction * 10 + new Vector2(-direction.y, direction.x) * 5;
-            Vector2 arrowRight = End - direction * 10 + new Vector2(direction.y, -direction.x) * 5;
+            Vector2 arrowTip = (Start + (End - Start) / 2);
+            Vector2 direction = (arrowTip - startPoint).normalized;
+            Vector2 arrowLeft = arrowTip - direction * 10 + new Vector2(-direction.y, direction.x) * 5;
+            Vector2 arrowRight = arrowTip - direction * 10 + new Vector2(direction.y, -direction.x) * 5;
 
             painter.BeginPath();
             painter.MoveTo(arrowTip);

@@ -13,8 +13,13 @@ namespace SkillTree.Editor
             {
                 SkillTreeEditorWindow.Open((SkillTreeAsset)target);
             }
-        
-            base.OnInspectorGUI();
+            
+            if (GUILayout.Button("Save"))
+            {
+                EditorUtility.SetDirty(target);
+                AssetDatabase.SaveAssets();
+                Debug.Log("Saved Skill Tree Editor");
+            }
         }
     }
 }

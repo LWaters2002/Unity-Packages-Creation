@@ -22,7 +22,9 @@ namespace SkillTree.Runtime
         }
 
         public Rect Position => _position;
-
+        
+        
+        [field : SerializeField]
         public NodeProperties Properties { get; private set; }
         
         [field : SerializeField]
@@ -56,5 +58,8 @@ namespace SkillTree.Runtime
         public string Description;
         public Sprite Icon;
         public int Cost;
+        public int MaxLevel;
+        public bool RequiresFullyLevelledParentsToUnlock;
+        public bool RequiresBothParentNodesToUnlock;
     }
 }

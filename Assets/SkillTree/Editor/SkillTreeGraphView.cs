@@ -23,6 +23,8 @@ namespace SkillTree.Editor
         public Dictionary<string, SkillTreeEditorNode> NodeLookup { get; private set; }
         public List<SkillTreeEditorNode> SkillTreeNodes { get; private set; }
 
+        private SkillTreeEditorNodeInspector _nodeInspector;
+
         public SkillTreeGraphView(SerializedObject serializedObject, SkillTreeEditorWindow editorWindow)
         {
             NodeLookup = new Dictionary<string, SkillTreeEditorNode>();
@@ -31,14 +33,54 @@ namespace SkillTree.Editor
             EditorWindow = editorWindow;
             CurrentSkillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
 
+            _nodeInspector = new SkillTreeEditorNodeInspector(this);
+            Add(_nodeInspector);
+            _nodeInspector.BringToFront();
+
             LoadStyleSheets();
             SetupBackground();
             AddManipulators();
-
-            contentViewContainer.BringToFront();
-            Undo.undoRedoPerformed += this.Refresh;
         }
 
+        protected override void HandleEventBubbleUp(EventBase evt)
+        {
+            if (evt is ExecuteCommandEvent commandEvent && commandEvent.commandName == "SoftDelete")
+            {
+                foreach (var selected in selection)
+                {
+                    if (selected is not SkillTreeEditorNode node) continue;
+                    
+                    RemoveNode(node);
+                    evt.StopPropagation();
+                }
+            }
+            
+            base.HandleEventBubbleUp(evt);
+        }
+        
+        private void RemoveNode(SkillTreeEditorNode node)
+        {
+            Undo.RecordObject(_serializedObject.targetObject, "Removed Node");
+        
+            SkillTreeNodes.Remove(node);
+            if (this.GetSkillTreeNodeDataIndex(node.ID, out int index))
+            {
+                CurrentSkillTreeAsset.Nodes.RemoveAt(index);
+            }
+
+            for (var i = NodeTransitions.Count - 1; i >= 0; i--)
+            {
+                SkillTreeEditorNodeTransition transition = NodeTransitions[i];
+                if (transition.StartTarget == node || transition.EndTarget == node)
+                {
+                    NodeTransitions.Remove(transition);
+                    RemoveElement(transition);
+                }
+            }
+
+            UpdateAsset();
+        }
+        
         private void LoadStyleSheets()
         {
             List<string> paths = new List<string>()
@@ -54,15 +96,26 @@ namespace SkillTree.Editor
             }
         }
 
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            _nodeInspector.SelectionUpdated(selection);
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            _nodeInspector.SelectionUpdated(selection);
+        }
+
         private void SetupBackground()
         {
             GridBackground background = new GridBackground();
             background.name = "Grid";
 
             background.StretchToParentSize();
-            background.SendToBack();
 
-            Add(background);
+            Insert(0, background);
         }
 
         private void AddManipulators()
@@ -76,26 +129,25 @@ namespace SkillTree.Editor
             this.AddManipulator(new ContextualMenuManipulator(evt =>
             {
                 evt.menu.AppendAction("Create new skill node", AddNodeAction);
+                evt.menu.AppendAction("Force Refresh", (_) => this.Refresh());
             }));
         }
-        
+
         public void TransitionCreated(SkillTreeEditorNodeTransition transition, bool registerObject = true)
         {
-            Undo.RecordObject(_serializedObject.targetObject, "Added Transition");
-
+            transition.SendToBack();
+            
             if (registerObject)
             {
+                Undo.RecordObject(_serializedObject.targetObject, "Added Transition");
+
                 SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
                 SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
 
-                int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == endTarget.ID);
-
-                if (index != -1)
-                {
+                if (this.GetSkillTreeNodeDataIndex(endTarget.ID, out int index))
                     CurrentSkillTreeAsset.Nodes[index].ParentGuids.Add(startTarget.ID);
-                }
 
-                _serializedObject.Update();
+                UpdateAsset();
             }
 
             NodeTransitions.Add(transition);
@@ -103,24 +155,18 @@ namespace SkillTree.Editor
 
         public void TransitionRemoved(SkillTreeEditorNodeTransition transition, bool registerObject = true)
         {
-            Undo.RecordObject(_serializedObject.targetObject, "Removed Transition");
-
             if (registerObject)
             {
+                Undo.RecordObject(_serializedObject.targetObject, "Removed Transition");
+
                 SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
                 SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
 
-                int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == endTarget.ID);
+                if (this.GetSkillTreeNodeDataIndex(endTarget.ID, out int index))
+                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Add(startTarget.ID);
 
-                if (index != -1)
-                {
-                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Remove(startTarget.ID);
-                }
-
-                _serializedObject.Update();
+                UpdateAsset();
             }
-            
-            _serializedObject.Update();
 
             NodeTransitions.Remove(transition);
 
@@ -153,17 +199,15 @@ namespace SkillTree.Editor
         private void RegisterNodeData(SkillTreeNodeData nodeData, SkillTreeEditorNode node)
         {
             Undo.RecordObject(_serializedObject.targetObject, "Added Node");
-            
+
             CurrentSkillTreeAsset.Nodes.Add(nodeData);
-            _serializedObject.Update();
+            UpdateAsset();
         }
 
         public void AddNodeToGraph(SkillTreeNodeData node, bool registerToObject = true)
         {
-            SkillTreeEditorNode newNode = new SkillTreeEditorNode(node.ID,this);
-            newNode.title = node.Properties.Title;
+            SkillTreeEditorNode newNode = new SkillTreeEditorNode(node, this);
             newNode.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/SkillTree/Editor/USS/Node.uss"));
-            node.typeName = node.GetType().AssemblyQualifiedName;
             newNode.SetPosition(node.Position);
             newNode.BringToFront();
 
@@ -176,21 +220,22 @@ namespace SkillTree.Editor
             }
 
             AddElement(newNode);
-            
             newNode.RegisterCallback<GeometryChangedEvent>(UpdateNodePosition);
         }
 
         private void UpdateNodePosition(GeometryChangedEvent evt)
         {
             if (evt.target is not SkillTreeEditorNode node) return;
-            
-            int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == node.ID);
-            if (index != -1)
-            {
-                CurrentSkillTreeAsset.Nodes[index].SetPosition(node.layout);
-            }
+            if (!this.GetSkillTreeNodeDataIndex(node.ID, out int index)) return;
+        
+            CurrentSkillTreeAsset.Nodes[index].SetPosition(node.layout);
+            UpdateAsset();
+        }
 
+        public void UpdateAsset()
+        {
             _serializedObject.Update();
+            EditorUtility.SetDirty(CurrentSkillTreeAsset);
         }
     }
 }

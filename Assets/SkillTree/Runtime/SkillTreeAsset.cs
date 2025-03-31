@@ -7,13 +7,8 @@ namespace SkillTree.Runtime
     public class SkillTreeAsset : ScriptableObject
     {
         [SerializeReference]
-        private List<SkillTreeNodeData> _nodes;
+        private List<SkillTreeNodeData> _nodes = new();
 
         public List<SkillTreeNodeData> Nodes => _nodes;
-
-        public SkillTreeAsset()
-        {
-            _nodes = new List<SkillTreeNodeData>();
-        }
     }
 }

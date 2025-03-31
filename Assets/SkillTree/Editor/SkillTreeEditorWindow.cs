@@ -10,22 +10,21 @@ namespace SkillTree.Editor
         [SerializeField]
         private SkillTreeAsset activeSkillTreeAsset;
     
-        [SerializeField]
         private SkillTreeGraphView graphView;
-
-        [SerializeField]
         SerializedObject serializedObject;
-    
+
         private void OnGUI()
         {
             GUILayout.Label("Skill Tree Editor", EditorStyles.boldLabel);
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         public static void Open(SkillTreeAsset targetAsset)
         {
             SkillTreeEditorWindow[] windows = Resources.FindObjectsOfTypeAll<SkillTreeEditorWindow>();
             foreach (SkillTreeEditorWindow window in windows)
             {
+                window.graphView?.ClearGraph();
                 window.Close();
             }
 

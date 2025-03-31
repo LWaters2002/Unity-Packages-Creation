@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using Unity.Plastic.Newtonsoft.Json.Serialization;
+using SkillTree.Runtime;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using Vector2 = UnityEngine.Vector2;
-using Vector3 = UnityEngine.Vector3;
 
 namespace SkillTree.Editor
 {
@@ -17,20 +12,39 @@ namespace SkillTree.Editor
         public string ID { get; private set; }
         private TransitionHandleManipulator _transitionHandleManipulator;
 
-        public SkillTreeEditorNode(string ID, GraphView graphView = null) : base()
+        private Image _imageIcon;
+        
+        private SkillTreeGraphView _graphView;
+        
+        public SkillTreeEditorNode(SkillTreeNodeData nodeData, SkillTreeGraphView graphView) : base()
         {
-            this.ID = ID;
+            _graphView = graphView;
+            nodeData.typeName = nodeData.GetType().AssemblyQualifiedName;
 
+            Init();
+            
+            ID = nodeData.ID;
+            _imageIcon.sprite = nodeData.Properties.Icon;
+        }
+
+        private void Init()
+        {
             capabilities |= Capabilities.Movable | Capabilities.Deletable | Capabilities.Copiable |
                             Capabilities.Selectable;
             AddToClassList("skill-node");
 
             m_TitleLabel = new Label();
-
-            CreateContainers(graphView);
+            
+            _imageIcon = new Image();
+            _imageIcon.AddToClassList("skillIcon");
+            Add(_imageIcon);
+            _imageIcon.StretchToParentSize();
+            _imageIcon.pickingMode = PickingMode.Ignore;
+            
+            CreateContainers(_graphView);
             m_TitleContainer.Add(m_TitleLabel);
 
-            _transitionHandleManipulator = new TransitionHandleManipulator(this, graphView)
+            _transitionHandleManipulator = new TransitionHandleManipulator(this, _graphView)
             {
                 target = this
             };

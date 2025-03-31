@@ -1,5 +1,4 @@
 ﻿using SkillTree.Runtime;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System.Linq;
 
@@ -9,18 +8,8 @@ namespace SkillTree.Editor
     {
         public static void Refresh(this SkillTreeGraphView graphView)
         {
-            graphView.NodeLookup.Clear();
-            graphView.NodeTransitions.Clear();
-            graphView.SkillTreeNodes.Clear();
+            ClearGraph(graphView);
             
-            foreach (VisualElement child in graphView.Children())
-            {
-                if (child is SkillTreeEditorNode or SkillTreeEditorNodeTransition)
-                {
-                    graphView.RemoveElement((GraphElement)child);
-                }
-            }
-
             foreach (SkillTreeNodeData node in graphView.CurrentSkillTreeAsset.Nodes)
             {
                 graphView.AddNodeToGraph(node, false);
@@ -44,6 +33,29 @@ namespace SkillTree.Editor
                     graphView.TransitionCreated(transition, false);
                 }   
             }
+        }
+
+        public static void ClearGraph(this SkillTreeGraphView graphView)
+        {
+            graphView.NodeLookup.Clear();
+            graphView.NodeTransitions.Clear();
+            graphView.SkillTreeNodes.Clear();
+
+            foreach (VisualElement child in graphView.contentViewContainer.Children())
+            {
+                if (child.childCount == 0) continue;
+                child.Clear();
+            }
+        }
+        public static bool GetSkillTreeNodeDataIndex(this SkillTreeGraphView graphView, string guid, out int foundIndex)
+        {
+            foundIndex = -1;
+
+            if (graphView == null) return false;
+            if (graphView.CurrentSkillTreeAsset == null) return false;
+
+            foundIndex = graphView.CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == guid);
+            return foundIndex != -1;
         }
     }
 }
