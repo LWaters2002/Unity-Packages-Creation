@@ -9,8 +9,8 @@ namespace SkillTree.Editor
         private Vector2 _end;
         private Vector2 _start;
 
-        private VisualElement m_startTarget;
-        private VisualElement m_endTarget;
+        public VisualElement StartTarget;
+        public VisualElement EndTarget;
 
         public Vector2 Start
         {
@@ -32,6 +32,15 @@ namespace SkillTree.Editor
             }
         }
 
+        
+        public SkillTreeEditorNodeTransition()
+        {
+            style.position = Position.Absolute;
+            AddToClassList("skillTreeEditorNodeTransition");
+
+            // Add a callback for custom drawing
+            generateVisualContent += OnGenerateVisualContent;
+        }
         public SkillTreeEditorNodeTransition(Vector2 start, Vector2 end)
         {
             style.position = Position.Absolute;
@@ -49,24 +58,24 @@ namespace SkillTree.Editor
         {
             if (startTarget == null || endTarget == null) return;
 
-            m_startTarget = startTarget;
-            m_endTarget = endTarget;
+            StartTarget = startTarget;
+            EndTarget = endTarget;
 
-            m_startTarget.RegisterCallback<GeometryChangedEvent>(evt => { UpdatePositions(); });
+            StartTarget.RegisterCallback<GeometryChangedEvent>(evt => { UpdatePositions(); });
 
-            m_endTarget.RegisterCallback<GeometryChangedEvent>(evt => { UpdatePositions(); });
+            EndTarget.RegisterCallback<GeometryChangedEvent>(evt => { UpdatePositions(); });
 
             UpdatePositions();
         }
 
         public void UpdatePositions()
         {
-            if (m_startTarget == null || m_endTarget == null) return;
+            if (StartTarget == null || EndTarget == null) return;
 
-            Vector2 handleOffset = new Vector2(m_endTarget.resolvedStyle.width, m_endTarget.resolvedStyle.height) -
+            Vector2 handleOffset = new Vector2(EndTarget.resolvedStyle.width, EndTarget.resolvedStyle.height) -
                                    Vector2.one * 16.0f;
-            Vector2 startPos = new Vector2(m_startTarget.layout.x, m_startTarget.layout.y);
-            Vector2 endPos = new Vector2(m_endTarget.layout.x, m_endTarget.layout.y);
+            Vector2 startPos = new Vector2(StartTarget.layout.x, StartTarget.layout.y);
+            Vector2 endPos = new Vector2(EndTarget.layout.x, EndTarget.layout.y);
 
             Start = startPos + handleOffset / 2;
             End = endPos + handleOffset / 2;

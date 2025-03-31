@@ -1,19 +1,24 @@
+using System;
 using System.Collections.Generic;
 using SkillTree.Runtime;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Linq;
+using SkillTree.Runtime.UI;
 
 namespace SkillTree.Editor
 {
     public class SkillTreeGraphView : GraphView
     {
         private SerializedObject _serializedObject;
-        private SkillTreeAsset _skillTreeAsset;
-        
-        public List<SkillTreeEditorNodeTransition>  NodeTransitions { get; set; } =  new List<SkillTreeEditorNodeTransition>();
-        
+        public SkillTreeAsset CurrentSkillTreeAsset { get; set; }
+
+        public List<SkillTreeEditorNodeTransition> NodeTransitions { get; set; } =
+            new List<SkillTreeEditorNodeTransition>();
+
         public SkillTreeEditorWindow EditorWindow { get; private set; }
         public Dictionary<string, SkillTreeEditorNode> NodeLookup { get; private set; }
         public List<SkillTreeEditorNode> SkillTreeNodes { get; private set; }
@@ -24,13 +29,14 @@ namespace SkillTree.Editor
             SkillTreeNodes = new List<SkillTreeEditorNode>();
             _serializedObject = serializedObject;
             EditorWindow = editorWindow;
-            _skillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
+            CurrentSkillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
 
             LoadStyleSheets();
             SetupBackground();
             AddManipulators();
 
             contentViewContainer.BringToFront();
+            Undo.undoRedoPerformed += this.Refresh;
         }
 
         private void LoadStyleSheets()
@@ -67,12 +73,61 @@ namespace SkillTree.Editor
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new ClickSelector());
-            
             this.AddManipulator(new ContextualMenuManipulator(evt =>
             {
                 evt.menu.AppendAction("Create new skill node", AddNodeAction);
-                evt.menu.AppendAction("Create new transition", AddTransitionAction, CanCreateTransition());
             }));
+        }
+        
+        public void TransitionCreated(SkillTreeEditorNodeTransition transition, bool registerObject = true)
+        {
+            Undo.RecordObject(_serializedObject.targetObject, "Added Transition");
+
+            if (registerObject)
+            {
+                SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
+                SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
+
+                int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == endTarget.ID);
+
+                if (index != -1)
+                {
+                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Add(startTarget.ID);
+                }
+
+                _serializedObject.Update();
+            }
+
+            NodeTransitions.Add(transition);
+        }
+
+        public void TransitionRemoved(SkillTreeEditorNodeTransition transition, bool registerObject = true)
+        {
+            Undo.RecordObject(_serializedObject.targetObject, "Removed Transition");
+
+            if (registerObject)
+            {
+                SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
+                SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
+
+                int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == endTarget.ID);
+
+                if (index != -1)
+                {
+                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Remove(startTarget.ID);
+                }
+
+                _serializedObject.Update();
+            }
+            
+            _serializedObject.Update();
+
+            NodeTransitions.Remove(transition);
+
+            if (Contains(transition))
+            {
+                RemoveElement(transition);
+            }
         }
 
         private void AddNodeAction(DropdownMenuAction dropdownMenuAction)
@@ -82,65 +137,60 @@ namespace SkillTree.Editor
             mousePos = contentViewContainer.WorldToLocal(mousePos);
 
             SkillTreeNodeData node = new SkillTreeNodeData();
+            node.ID = Guid.NewGuid().ToString();
             node.SetPosition(new Rect(mousePos.x, mousePos.y, 64, 64));
-
             node.SetProperties(new NodeProperties()
             {
                 Title = "New Skill Node",
                 Description = "New Skill Node Description",
                 Icon = null,
-                Cost = 1
+                Cost = 1,
             });
 
             AddNodeToGraph(node);
         }
 
-        private DropdownMenuAction.Status CanCreateTransition()
-        {
-            if (selection.Count > 1)
-            {
-                return DropdownMenuAction.Status.Disabled;
-            }
-        
-            foreach (ISelectable selectable in selection)
-            {
-                if (selectable is SkillTreeEditorNode node)
-                {
-                    return DropdownMenuAction.Status.Normal;
-                }
-            }
-
-            return DropdownMenuAction.Status.Hidden;
-        }   
-
-        private void AddTransitionAction(DropdownMenuAction action)
-        {
-            SkillTreeEditorNodeTransition transition = new SkillTreeEditorNodeTransition(Vector2.zero, Vector2.one * 200.0f);
-            AddElement(transition);
-        }
-
         private void RegisterNodeData(SkillTreeNodeData nodeData, SkillTreeEditorNode node)
         {
             Undo.RecordObject(_serializedObject.targetObject, "Added Node");
-
-            _skillTreeAsset.Nodes.Add(nodeData);
+            
+            CurrentSkillTreeAsset.Nodes.Add(nodeData);
             _serializedObject.Update();
-
-            NodeLookup.Add(nodeData.ID, node);
-            SkillTreeNodes.Add(node);
         }
 
-        public void AddNodeToGraph(SkillTreeNodeData node)
+        public void AddNodeToGraph(SkillTreeNodeData node, bool registerToObject = true)
         {
-            SkillTreeEditorNode newNode = new SkillTreeEditorNode(this);
+            SkillTreeEditorNode newNode = new SkillTreeEditorNode(node.ID,this);
             newNode.title = node.Properties.Title;
             newNode.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/SkillTree/Editor/USS/Node.uss"));
             node.typeName = node.GetType().AssemblyQualifiedName;
             newNode.SetPosition(node.Position);
             newNode.BringToFront();
 
-            RegisterNodeData(node, newNode);
+            SkillTreeNodes.Add(newNode);
+            NodeLookup.Add(node.ID, newNode);
+
+            if (registerToObject)
+            {
+                RegisterNodeData(node, newNode);
+            }
+
             AddElement(newNode);
+            
+            newNode.RegisterCallback<GeometryChangedEvent>(UpdateNodePosition);
+        }
+
+        private void UpdateNodePosition(GeometryChangedEvent evt)
+        {
+            if (evt.target is not SkillTreeEditorNode node) return;
+            
+            int index = CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == node.ID);
+            if (index != -1)
+            {
+                CurrentSkillTreeAsset.Nodes[index].SetPosition(node.layout);
+            }
+
+            _serializedObject.Update();
         }
     }
 }

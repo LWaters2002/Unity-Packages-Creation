@@ -15,11 +15,18 @@ namespace SkillTree.Runtime
 
         public string typeName;
 
-        public string ID => _guid;
+        public string ID
+        {
+            get => _guid;
+            set => _guid = value;
+        }
+
         public Rect Position => _position;
 
         public NodeProperties Properties { get; private set; }
-        public List<string> ParentGuids { get; private set; }
+        
+        [field : SerializeField]
+        public List<string> ParentGuids { get; private set; } = new List<string>();
 
         public SkillTreeNodeData()
         {

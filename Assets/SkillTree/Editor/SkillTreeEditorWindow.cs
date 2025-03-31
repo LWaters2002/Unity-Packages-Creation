@@ -37,16 +37,17 @@ namespace SkillTree.Editor
         private void Load(SkillTreeAsset targetAsset)
         {
             activeSkillTreeAsset = targetAsset;
-            DrawGraph();
+            InitGraph();
         }
 
-        private void DrawGraph()
+        private void InitGraph()
         {
             serializedObject = new SerializedObject(activeSkillTreeAsset);
             graphView = new SkillTreeGraphView(serializedObject, this);
             graphView.StretchToParentSize();
 
             rootVisualElement.Add(graphView);
+            graphView.Refresh();
         }
     }
 }
