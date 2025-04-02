@@ -21,9 +21,9 @@ MonoBehaviour:
   - rid: 4336134831237758976
   - rid: 4336134831237758977
   - rid: 4336134831237759036
-  - rid: 4336134831237759042
-  - rid: 4336134831237759043
-  - rid: 4336134831237759044
+  - rid: 4336134834039816192
+  - rid: 4336134834039816193
+  - rid: 4336134834039816194
   references:
     version: 2
     RefIds:
@@ -208,14 +208,14 @@ MonoBehaviour:
         - c7e6aba9-2d6c-4505-9cd9-0f2e43153e82
         - 316fd57d-0f76-4a79-8dc3-0e16ad2f17b6
         - b2dbe016-5f6b-42eb-99f9-1b35cacc283c
-    - rid: 4336134831237759042
+    - rid: 4336134834039816192
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
-        _guid: c9250e28-82c9-47f2-b9b6-f9831df15981
+        _guid: 90a19984-8119-4d4a-940e-ba052cd5aa87
         _position:
           serializedVersion: 2
-          x: 372.40283
-          y: 191.98405
+          x: 509.93872
+          y: 90.47338
           width: 64
           height: 64
         typeName: SkillTree.Runtime.SkillTreeNodeData, SkillTreeRuntime, Version=0.0.0.0,
@@ -223,20 +223,21 @@ MonoBehaviour:
         <Properties>k__BackingField:
           Title: New Skill Node
           Description: New Skill Node Description
-          Icon: {fileID: 0}
-          Cost: 1
+          Icon: {fileID: 21300000, guid: 0f0afda94ec48f94486ce51c89e8eb6c, type: 3}
+          Cost: 0
           MaxLevel: 0
           RequiresFullyLevelledParentsToUnlock: 0
           RequiresBothParentNodesToUnlock: 0
-        <ParentGuids>k__BackingField: []
-    - rid: 4336134831237759043
+        <ParentGuids>k__BackingField:
+        - c1493f42-2028-4e12-8470-9ff8abfab713
+    - rid: 4336134834039816193
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
-        _guid: a75a7667-650e-433d-9ae0-5438d2e3a90c
+        _guid: b20d35b2-95b8-4345-90c8-89d8094c3701
         _position:
           serializedVersion: 2
-          x: 885.9024
-          y: 6.9391775
+          x: 766.3715
+          y: -2.5443745
           width: 64
           height: 64
         typeName: SkillTree.Runtime.SkillTreeNodeData, SkillTreeRuntime, Version=0.0.0.0,
@@ -244,20 +245,21 @@ MonoBehaviour:
         <Properties>k__BackingField:
           Title: New Skill Node
           Description: New Skill Node Description
-          Icon: {fileID: 0}
-          Cost: 1
+          Icon: {fileID: 21300000, guid: 968dbb7e328e4ad46bfe1704d7aa090b, type: 3}
+          Cost: 0
           MaxLevel: 0
           RequiresFullyLevelledParentsToUnlock: 0
           RequiresBothParentNodesToUnlock: 0
-        <ParentGuids>k__BackingField: []
-    - rid: 4336134831237759044
+        <ParentGuids>k__BackingField:
+        - 90a19984-8119-4d4a-940e-ba052cd5aa87
+    - rid: 4336134834039816194
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
-        _guid: 5a874535-e37e-425b-b81b-7f2d9166dc65
+        _guid: c1493f42-2028-4e12-8470-9ff8abfab713
         _position:
           serializedVersion: 2
-          x: 883.5893
-          y: 340.01996
+          x: 766.521
+          y: 211.40161
           width: 64
           height: 64
         typeName: SkillTree.Runtime.SkillTreeNodeData, SkillTreeRuntime, Version=0.0.0.0,
@@ -265,9 +267,10 @@ MonoBehaviour:
         <Properties>k__BackingField:
           Title: New Skill Node
           Description: New Skill Node Description
-          Icon: {fileID: 0}
-          Cost: 1
+          Icon: {fileID: 21300000, guid: a3869222d27c5ad4d8429af6dc2f210b, type: 3}
+          Cost: 0
           MaxLevel: 0
           RequiresFullyLevelledParentsToUnlock: 0
           RequiresBothParentNodesToUnlock: 0
-        <ParentGuids>k__BackingField: []
+        <ParentGuids>k__BackingField:
+        - b20d35b2-95b8-4345-90c8-89d8094c3701
