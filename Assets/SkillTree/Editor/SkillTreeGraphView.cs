@@ -16,8 +16,7 @@ namespace SkillTree.Editor
         private SerializedObject _serializedObject;
         public SkillTreeAsset CurrentSkillTreeAsset { get; set; }
 
-        public List<SkillTreeEditorNodeTransition> NodeTransitions { get; set; } =
-            new List<SkillTreeEditorNodeTransition>();
+        public List<SkillTreeEditorNodeTransition> NodeTransitions { get; set; } = new();
 
         public SkillTreeEditorWindow EditorWindow { get; private set; }
         public Dictionary<string, SkillTreeEditorNode> NodeLookup { get; private set; }
@@ -33,6 +32,7 @@ namespace SkillTree.Editor
             EditorWindow = editorWindow;
             CurrentSkillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
 
+            RegisterCallback<KeyDownEvent>(OnKeyDown);
             _nodeInspector = new SkillTreeEditorNodeInspector(this);
             Add(_nodeInspector);
             _nodeInspector.BringToFront();
@@ -42,6 +42,50 @@ namespace SkillTree.Editor
             AddManipulators();
         }
 
+        private void OnKeyDown(KeyDownEvent evt)
+        {
+            switch (evt.keyCode)
+            {
+                case KeyCode.Q:
+                {
+                    StraightenNodes();
+                    break;
+                }
+            }
+        }
+
+        private void StraightenNodes()
+        {
+            if (selection.Count == 0) return;
+
+            Vector2 averagePosition = Vector2.zero;
+
+            foreach (var selected in selection)
+            {
+                if (selected is not SkillTreeEditorNode node) continue;
+                averagePosition += node.layout.position;
+            }
+
+            averagePosition /= selection.Count;
+            Vector3 relativeAveragePosition = averagePosition - ((VisualElement)selection[0]).layout.position;
+
+            bool xOrY = Mathf.Abs(relativeAveragePosition.x) < MathF.Abs(relativeAveragePosition.y);
+            foreach (ISelectable selected in selection)
+            {
+                if (selected is not SkillTreeEditorNode node) continue;
+                Rect rect = node.GetPosition();
+                if (xOrY)
+                {
+                    rect.x = averagePosition.x;
+                }
+                else
+                {
+                    rect.y = averagePosition.y;
+                }
+                node.SetPosition(rect);
+            }
+        }
+
         protected override void HandleEventBubbleUp(EventBase evt)
         {
             if (evt is ExecuteCommandEvent commandEvent && commandEvent.commandName == "SoftDelete")
@@ -49,23 +93,23 @@ namespace SkillTree.Editor
                 foreach (var selected in selection)
                 {
                     if (selected is not SkillTreeEditorNode node) continue;
-                    
+
                     RemoveNode(node);
                     evt.StopPropagation();
                 }
             }
-            
+
             base.HandleEventBubbleUp(evt);
         }
-        
+
         private void RemoveNode(SkillTreeEditorNode node)
         {
             Undo.RecordObject(_serializedObject.targetObject, "Removed Node");
-        
+
             SkillTreeNodes.Remove(node);
-            if (this.GetSkillTreeNodeDataIndex(node.ID, out int index))
+            if (this.GetSkillTreeNodeDataIndex(node.ID) is { } nodeData)
             {
-                CurrentSkillTreeAsset.Nodes.RemoveAt(index);
+                CurrentSkillTreeAsset.Nodes.Remove(nodeData);
             }
 
             for (var i = NodeTransitions.Count - 1; i >= 0; i--)
@@ -80,7 +124,7 @@ namespace SkillTree.Editor
 
             UpdateAsset();
         }
-        
+
         private void LoadStyleSheets()
         {
             List<string> paths = new List<string>()
@@ -136,7 +180,7 @@ namespace SkillTree.Editor
         public void TransitionCreated(SkillTreeEditorNodeTransition transition, bool registerObject = true)
         {
             transition.SendToBack();
-            
+
             if (registerObject)
             {
                 Undo.RecordObject(_serializedObject.targetObject, "Added Transition");
@@ -144,8 +188,8 @@ namespace SkillTree.Editor
                 SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
                 SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
 
-                if (this.GetSkillTreeNodeDataIndex(endTarget.ID, out int index))
-                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Add(startTarget.ID);
+                if (this.GetSkillTreeNodeDataIndex(endTarget.ID) is { } nodeData)
+                    nodeData.ParentGuids.Add(startTarget.ID);
 
                 UpdateAsset();
             }
@@ -162,8 +206,8 @@ namespace SkillTree.Editor
                 SkillTreeEditorNode startTarget = (SkillTreeEditorNode)transition.StartTarget;
                 SkillTreeEditorNode endTarget = (SkillTreeEditorNode)transition.EndTarget;
 
-                if (this.GetSkillTreeNodeDataIndex(endTarget.ID, out int index))
-                    CurrentSkillTreeAsset.Nodes[index].ParentGuids.Add(startTarget.ID);
+                if (this.GetSkillTreeNodeDataIndex(endTarget.ID) is { } nodeData)
+                    nodeData.ParentGuids.Add(startTarget.ID);
 
                 UpdateAsset();
             }
@@ -187,10 +231,10 @@ namespace SkillTree.Editor
             node.SetPosition(new Rect(mousePos.x, mousePos.y, 64, 64));
             node.SetProperties(new NodeProperties()
             {
-                Title = "New Skill Node",
-                Description = "New Skill Node Description",
-                Icon = null,
-                Cost = 1,
+                title = "New Skill Node",
+                description = "New Skill Node Description",
+                icon = null,
+                cost = 1,
             });
 
             AddNodeToGraph(node);
@@ -226,9 +270,9 @@ namespace SkillTree.Editor
         private void UpdateNodePosition(GeometryChangedEvent evt)
         {
             if (evt.target is not SkillTreeEditorNode node) return;
-            if (!this.GetSkillTreeNodeDataIndex(node.ID, out int index)) return;
-        
-            CurrentSkillTreeAsset.Nodes[index].SetPosition(node.layout);
+            if (this.GetSkillTreeNodeDataIndex(node.ID) is not { } nodeData) return;
+
+            nodeData.SetPosition(node.layout);
             UpdateAsset();
         }
 

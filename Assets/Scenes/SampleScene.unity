@@ -660,10 +660,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51d494fe603fe3d4680f6af11e227f64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ZoomSensitivity: 0.2
   skillTreeAsset: {fileID: 11400000, guid: 81b28f24ff880494bbd454f19b8f0d9d, type: 2}
   nodePrefab: {fileID: 2823875920082209385, guid: 03e56d766f117194fbe3c21aed1fad2a, type: 3}
   arrowPrefab: {fileID: 8176638724272129300, guid: 3001bec5c8cfe1749a27bdf8ae39c377, type: 3}
   contentContainer: {fileID: 895779451}
+  canvas: {fileID: 2075972968}
 --- !u!1 &2075972965
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,7 +714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 1
+  m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}

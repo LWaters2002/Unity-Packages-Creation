@@ -33,6 +33,10 @@ namespace SkillTree.Editor
                     graphView.TransitionCreated(transition, false);
                 }   
             }
+            
+            VisualElement centrePoint = new VisualElement();
+            centrePoint.AddToClassList("centre-point");
+            graphView.contentViewContainer.Children().ToArray()[0].Add(centrePoint);
         }
 
         public static void ClearGraph(this SkillTreeGraphView graphView)
@@ -47,15 +51,9 @@ namespace SkillTree.Editor
                 child.Clear();
             }
         }
-        public static bool GetSkillTreeNodeDataIndex(this SkillTreeGraphView graphView, string guid, out int foundIndex)
+        public static SkillTreeNodeData GetSkillTreeNodeDataIndex(this SkillTreeGraphView graphView, string guid)
         {
-            foundIndex = -1;
-
-            if (graphView == null) return false;
-            if (graphView.CurrentSkillTreeAsset == null) return false;
-
-            foundIndex = graphView.CurrentSkillTreeAsset.Nodes.FindIndex(x => x.ID == guid);
-            return foundIndex != -1;
+            return graphView.CurrentSkillTreeAsset == null ? null : graphView.CurrentSkillTreeAsset.Nodes.Find(x => x.ID == guid);
         }
     }
 }

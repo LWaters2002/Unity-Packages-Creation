@@ -23,6 +23,8 @@ namespace SkillTree.Editor
         private Toggle _fullLevelRequiredToggle;
         private Toggle _bothParentsRequiredToggle;
         private IntegerField _maxLevelField;
+        private IntegerField _costField;
+        private TextField _skillIdentifierTextField;
 
         public SkillTreeEditorNodeInspector(SkillTreeGraphView graphView)
         {
@@ -52,11 +54,13 @@ namespace SkillTree.Editor
             _spriteSelectorContainer.Add(_spriteImage);
             _spriteSelectorContainer.Add(_spriteObjectField);
 
+            AddItemVisualElement(_skillIdentifierTextField);
             AddItemVisualElement(_skillTitleTextField);
             AddItemVisualElement(_skillDescriptionTextField);
             AddItemVisualElement(_fullLevelRequiredToggle);
             AddItemVisualElement(_bothParentsRequiredToggle);
             AddItemVisualElement(_maxLevelField);
+            AddItemVisualElement(_costField);
         }
 
         private void SetupEvents()
@@ -69,10 +73,13 @@ namespace SkillTree.Editor
             _fullLevelRequiredToggle.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
             _bothParentsRequiredToggle.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
             _maxLevelField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
+            _costField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
+            _skillIdentifierTextField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
         }
 
         private void CreateTextFields()
         {
+            _skillIdentifierTextField = new TextField("Skill Identifier");
             _skillTitleTextField = new TextField("Skill Title");
             _skillDescriptionTextField = new TextField("Skill Description")
             {
@@ -85,6 +92,7 @@ namespace SkillTree.Editor
             _fullLevelRequiredToggle = new Toggle("Need parents max level");
             _bothParentsRequiredToggle = new Toggle("Need both parents?");
             _maxLevelField = new IntegerField("Max Level");
+            _costField = new IntegerField("Cost");
         }
 
         private void CreateSpriteSelector()
@@ -123,21 +131,23 @@ namespace SkillTree.Editor
         private void UpdateNodeWithInspectorDetails()
         {
             if (SelectedNodes.Count == 0) return;
-            if (!_graphView.GetSkillTreeNodeDataIndex(SelectedNodes[0].ID, out int index)) return;
+            if (_graphView.GetSkillTreeNodeDataIndex(SelectedNodes[0].ID) is not { } nodeData) return;
 
             _spriteImage.sprite = _spriteObjectField.value as Sprite;
 
             NodeProperties properties = new NodeProperties()
             {
-                Icon = _spriteImage.sprite,
-                Title = _skillTitleTextField.value,
-                Description = _skillDescriptionTextField.value,
-                RequiresBothParentNodesToUnlock = _bothParentsRequiredToggle.value,
-                RequiresFullyLevelledParentsToUnlock = _fullLevelRequiredToggle.value,
-                MaxLevel = _maxLevelField.value
+                identifier = _skillIdentifierTextField.text,
+                icon = _spriteImage.sprite,
+                title = _skillTitleTextField.value,
+                description = _skillDescriptionTextField.value,
+                requiresAllParentNodesToUnlock = _bothParentsRequiredToggle.value,
+                requiresFullyLevelledParentsToUnlock = _fullLevelRequiredToggle.value,
+                cost = _costField.value,
+                maxLevel = _maxLevelField.value
             };
 
-            _graphView.CurrentSkillTreeAsset.Nodes[index].SetProperties(properties);
+            nodeData.SetProperties(properties);
 
             _graphView.UpdateAsset();
             _graphView.Refresh();
@@ -146,18 +156,19 @@ namespace SkillTree.Editor
         private void UpdateInspectorWithNodeDetails()
         {
             if (SelectedNodes.Count == 0) return;
-            if (!_graphView.GetSkillTreeNodeDataIndex(SelectedNodes[0].ID, out int index)) return;
+            if (_graphView.GetSkillTreeNodeDataIndex(SelectedNodes[0].ID) is not { } nodeData) return;
 
-            SkillTreeNodeData nodeData = _graphView.CurrentSkillTreeAsset.Nodes[index];
             NodeProperties properties = nodeData.Properties;
 
-            _spriteImage.sprite = properties.Icon;
-            _spriteObjectField.SetValueWithoutNotify(nodeData.Properties.Icon);
-
-            _skillTitleTextField.SetValueWithoutNotify(nodeData.Properties.Title);
-            _skillDescriptionTextField.SetValueWithoutNotify(nodeData.Properties.Description);
-            _fullLevelRequiredToggle.SetValueWithoutNotify(nodeData.Properties.RequiresBothParentNodesToUnlock);
-            _bothParentsRequiredToggle.SetValueWithoutNotify(nodeData.Properties.RequiresFullyLevelledParentsToUnlock);
+            _skillIdentifierTextField.SetValueWithoutNotify(properties.identifier);
+            _spriteImage.sprite = properties.icon;
+            _spriteObjectField.SetValueWithoutNotify(nodeData.Properties.icon);
+            _costField.SetValueWithoutNotify(nodeData.Properties.cost);
+            _maxLevelField.SetValueWithoutNotify(properties.maxLevel);
+            _skillTitleTextField.SetValueWithoutNotify(nodeData.Properties.title);
+            _skillDescriptionTextField.SetValueWithoutNotify(nodeData.Properties.description);
+            _fullLevelRequiredToggle.SetValueWithoutNotify(nodeData.Properties.requiresAllParentNodesToUnlock);
+            _bothParentsRequiredToggle.SetValueWithoutNotify(nodeData.Properties.requiresFullyLevelledParentsToUnlock);
         }
     }
 }

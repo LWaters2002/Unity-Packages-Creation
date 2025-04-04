@@ -51,3 +51,9 @@
     min-width: 128px;
     width : 128px;
 }
+
+.centre-point {
+    width : 8px;
+    height : 8px;
+    background-color : white;
+}

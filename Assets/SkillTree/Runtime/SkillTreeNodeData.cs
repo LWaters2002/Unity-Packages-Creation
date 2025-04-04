@@ -7,13 +7,8 @@ namespace SkillTree.Runtime
     [Serializable]
     public class SkillTreeNodeData
     {
-        [SerializeField]
-        private string _guid = "";
-
-        [SerializeField]
-        private Rect _position;
-
-        public string typeName;
+        [SerializeField] private string _guid = Guid.NewGuid().ToString();
+        [SerializeField] private Rect _position;
 
         public string ID
         {
@@ -22,23 +17,9 @@ namespace SkillTree.Runtime
         }
 
         public Rect Position => _position;
-        
-        
-        [field : SerializeField]
-        public NodeProperties Properties { get; private set; }
-        
-        [field : SerializeField]
-        public List<string> ParentGuids { get; private set; } = new List<string>();
 
-        public SkillTreeNodeData()
-        {
-            NewGUID();
-        }
-
-        private void NewGUID()
-        {
-            _guid = Guid.NewGuid().ToString();
-        }
+        [field: SerializeField] public NodeProperties Properties { get; private set; }
+        [field: SerializeField] public List<string> ParentGuids { get; private set; } = new();
 
         public void SetPosition(Rect position)
         {
@@ -54,12 +35,20 @@ namespace SkillTree.Runtime
     [Serializable]
     public struct NodeProperties
     {
-        public string Title;
-        public string Description;
-        public Sprite Icon;
-        public int Cost;
-        public int MaxLevel;
-        public bool RequiresFullyLevelledParentsToUnlock;
-        public bool RequiresBothParentNodesToUnlock;
+        public string identifier;
+        public string title;
+        public string description;
+        public Sprite icon;
+        public int cost;
+        public int maxLevel;
+        public bool requiresFullyLevelledParentsToUnlock;
+        public bool requiresAllParentNodesToUnlock;
+    }
+
+    [Serializable]
+    public class RuntimeNodeData
+    {
+        public bool isUnlocked = true;
+        public int level;
     }
 }

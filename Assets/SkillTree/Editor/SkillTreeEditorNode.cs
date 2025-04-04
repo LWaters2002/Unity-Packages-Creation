@@ -19,12 +19,11 @@ namespace SkillTree.Editor
         public SkillTreeEditorNode(SkillTreeNodeData nodeData, SkillTreeGraphView graphView) : base()
         {
             _graphView = graphView;
-            nodeData.typeName = nodeData.GetType().AssemblyQualifiedName;
 
             Init();
             
             ID = nodeData.ID;
-            _imageIcon.sprite = nodeData.Properties.Icon;
+            _imageIcon.sprite = nodeData.Properties.icon;
         }
 
         private void Init()
