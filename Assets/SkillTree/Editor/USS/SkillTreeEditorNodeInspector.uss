@@ -49,11 +49,9 @@
     flex-direction: column;
     height: 128px;
     min-width: 128px;
-    width : 128px;
+    width : 100%;
 }
 
-.centre-point {
-    width : 8px;
-    height : 8px;
-    background-color : white;
+#unity-text-input { 
+    width: 100%;
 }

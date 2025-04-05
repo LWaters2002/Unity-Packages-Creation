@@ -1,7 +1,10 @@
 using System.Linq;
 using TMPro;
+using UnityEditor.Graphs;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
+using Image = UnityEngine.UI.Image;
 
 namespace SkillTree.Runtime.UI
 {
@@ -11,12 +14,13 @@ namespace SkillTree.Runtime.UI
         private Image icon;
 
         [SerializeField] private Image border;
-        [SerializeField] private Button button;
         [SerializeField] private TextMeshProUGUI levelText;
 
         [SerializeField] private SkillTreeNodeData data;
         [SerializeField] private RuntimeNodeData runtimeData;
+
         private SkillTreeViewer _skillTreeViewer;
+        private Button button;
 
         public void Init(SkillTreeViewer skillTreeViewer, SkillTreeNodeData inData)
         {
@@ -33,14 +37,18 @@ namespace SkillTree.Runtime.UI
                 isUnlocked = true,
                 level = 0
             };
-            
-            button.onClick.AddListener(OnButtonClick);
+
+            button = GetComponent<Button>();
+            button?.onClick.AddListener(OnButtonClick);
             UpdateLevelText();
         }
 
         private void OnButtonClick()
         {
-            LevelUp();
+            if (_skillTreeViewer.Buy(data.Properties.cost))
+            {
+                LevelUp();
+            }
         }
 
         private void LevelUp()
@@ -52,6 +60,7 @@ namespace SkillTree.Runtime.UI
             
             UpdateLevelText();
             _skillTreeViewer.OnNodeStateChanged?.Invoke(data.ID);
+            SkillTreeEvents.OnSkillTreeLevelUp?.Invoke(data.Properties.identifier, runtimeData.level);
         }
 
         private void UpdateLevelText() => levelText.text = $"{runtimeData.level}/{data.Properties.maxLevel}";
@@ -96,11 +105,14 @@ namespace SkillTree.Runtime.UI
                 return;
             }
 
-            button.interactable = setUnlock;
+            if (button)
+                button.interactable = setUnlock;
+            
             runtimeData.isUnlocked = setUnlock;
             _skillTreeViewer.OnNodeStateChanged?.Invoke(data.ID);
         }
-
+        
+        public int GetCost() => data.Properties.cost;
         public int GetLevel() => runtimeData.level;
         public int GetMaxLevel() => data.Properties.maxLevel;
         public bool GetIsUnlocked() => runtimeData.isUnlocked;

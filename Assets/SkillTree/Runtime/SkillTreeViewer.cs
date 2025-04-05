@@ -1,17 +1,22 @@
 using System.Collections.Generic;
+using System.Linq;
 using SkillTree.Runtime.UI;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Vector2 = UnityEngine.Vector2;
-using Vector3 = UnityEngine.Vector3;
 
 namespace SkillTree.Runtime
 {
     public class SkillTreeViewer : MonoBehaviour
     {
-        public float ZoomSensitivity = .2f;
+        [SerializeField] private int skillPoints;
 
-        [SerializeField] public SkillTreeAsset skillTreeAsset;
+        public float zoomSensitivity = .2f;
+
+        [Header("References")] [SerializeField]
+        public SkillTreeAsset skillTreeAsset;
+
+        [SerializeField] private TextMeshProUGUI skillPointText;
 
         [Header("Prefabs")] [SerializeField] private GameObject nodePrefab;
         [SerializeField] private GameObject arrowPrefab;
@@ -22,41 +27,81 @@ namespace SkillTree.Runtime
         [SerializeField] private Canvas canvas;
 
         private SkillTreeControls _controls;
-        private bool _isDragging = false;
+        private bool _isDragging;
 
-        public Dictionary<string, SkillTreeNode> Nodes { get; private set; } = new Dictionary<string, SkillTreeNode>();
-        
+        public Dictionary<string, SkillTreeNode> Nodes { get; } = new();
+
         private float _targetZoom = 1.0f;
 
         public System.Action<string> OnNodeStateChanged;
-        
+        public System.Action<int> OnSkillPointChanged;
+
         private void Start()
         {
             GenerateUI();
-            
+
             _controls = new SkillTreeControls();
             _controls.Enable();
             _controls.UI.Drag.performed += _ => _isDragging = true;
             _controls.UI.Drag.canceled += _ => _isDragging = false;
             _controls.UI.Zoom.performed += OnZoom;
+            
+            UpdateSkillPointText();
+        }
+
+        public void ResetSkillTree() // Can be called from UnityActions
+        {
+            int resetSkillPoints = skillPoints + Nodes.Values.Sum(node => node.GetCost() * node.GetLevel());
+
+            foreach (Transform childTransform in contentContainer.transform)
+            {
+                Destroy(childTransform.gameObject);
+            }
+
+            skillPoints = resetSkillPoints;
+            OnSkillPointChanged?.Invoke(skillPoints);
+            Nodes.Clear();
+            
+            GenerateUI();
+            UpdateSkillPointText();
+        }
+        
+        public bool CanBuy(int cost)
+        {
+            return (cost <= skillPoints);
+        }
+
+        public bool Buy(int cost)
+        {
+            if (!CanBuy(cost)) return false;
+
+            skillPoints -= cost;
+            OnSkillPointChanged?.Invoke(skillPoints);
+            UpdateSkillPointText();
+            return true;
+        }
+
+        private void UpdateSkillPointText()
+        {
+            skillPointText.text = $"Skill Points : {skillPoints}";
         }
 
         private void OnZoom(InputAction.CallbackContext obj)
         {
             float zoomValue = obj.ReadValue<float>();
 
-            _targetZoom += zoomValue * ZoomSensitivity;
+            _targetZoom += zoomValue * zoomSensitivity;
             _targetZoom = Mathf.Clamp(_targetZoom, 0.4f, 2.5f);
         }
 
         private void GenerateUI()
         {
             GameObject arrowContainer = new GameObject("Arrows");
-            
+
             arrowContainer.transform.SetParent(contentContainer.transform);
             arrowContainer.transform.localPosition = Vector3.zero;
             arrowContainer.transform.localScale = Vector3.one;
-
+            
             foreach (SkillTreeNodeData nodeData in skillTreeAsset.Nodes)
             {
                 SkillTreeNode newNode =
@@ -64,8 +109,7 @@ namespace SkillTree.Runtime
                 newNode.Init(this, nodeData);
                 Nodes.Add(nodeData.ID, newNode);
             }
-            
-            // Update all unlock states
+
             foreach (KeyValuePair<string, SkillTreeNode> node in Nodes)
             {
                 node.Value.UpdateUnlockState();
@@ -83,7 +127,7 @@ namespace SkillTree.Runtime
 
                     SkillTreeArrowGraphic arrow = Instantiate(arrowPrefab, arrowContainer.transform)
                         .GetComponent<SkillTreeArrowGraphic>();
-                    
+
                     arrow.StartPoint = parentNode.transform.localPosition;
                     arrow.EndPoint = startNode.transform.localPosition;
                 }

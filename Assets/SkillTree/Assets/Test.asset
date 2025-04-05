@@ -13,93 +13,115 @@ MonoBehaviour:
   m_Name: Test
   m_EditorClassIdentifier: 
   _nodes:
-  - rid: 7225024054629498948
-  - rid: 7225024054629498949
-  - rid: 7225024054629498950
-  - rid: 7225024057328533572
+  - rid: 7225024077902905344
+  - rid: 7225024077902905345
+  - rid: 7225024077902905346
+  - rid: 7225024077902905347
+  - rid: 7225024077902905348
   references:
     version: 2
     RefIds:
-    - rid: 7225024054629498948
+    - rid: 7225024077902905344
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
-        _guid: 5925da30-fe1b-4948-ba59-93183ce7e650
+        _guid: b183aafb-2c9a-4fb8-a72e-b56fd4b74511
         _position:
           serializedVersion: 2
-          x: 346.81458
-          y: 113.049225
+          x: 409.5341
+          y: -295.40082
           width: 64
           height: 64
         <Properties>k__BackingField:
-          identifier: Speed-0
-          title: aea
-          description: dwadwa
-          icon: {fileID: 21300000, guid: be1941257591da142a9caa7e2dbf25d1, type: 3}
+          identifier: 
+          title: New Skill Node
+          description: New Skill Node Description
+          icon: {fileID: 21300000, guid: 36c3eaa2fcd645049a47c305fec73f60, type: 3}
           cost: 1
           maxLevel: 3
           requiresFullyLevelledParentsToUnlock: 0
           requiresAllParentNodesToUnlock: 0
         <ParentGuids>k__BackingField: []
-    - rid: 7225024054629498949
+    - rid: 7225024077902905345
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
-        _guid: a7d7ccaf-5a93-407e-a13c-b72c8ee10459
+        _guid: ad670abf-65b2-434d-813a-c2997bbbb043
         _position:
           serializedVersion: 2
-          x: 587.81866
-          y: 387.04922
+          x: 409.5341
+          y: -148.0675
           width: 64
           height: 64
         <Properties>k__BackingField:
           identifier: 
           title: New Skill Node
           description: New Skill Node Description
-          icon: {fileID: 21300000, guid: ddf5eb91941448643adac53e227a4021, type: 3}
+          icon: {fileID: 21300000, guid: 4a8db7578839a3744a78aefc04c61935, type: 3}
           cost: 1
-          maxLevel: 5
-          requiresFullyLevelledParentsToUnlock: 0
-          requiresAllParentNodesToUnlock: 0
-        <ParentGuids>k__BackingField:
-        - 5925da30-fe1b-4948-ba59-93183ce7e650
-    - rid: 7225024054629498950
-      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
-      data:
-        _guid: 3d42645f-ca61-4477-bd31-35fb48dc1540
-        _position:
-          serializedVersion: 2
-          x: 373.81866
-          y: 270.5324
-          width: 64
-          height: 64
-        <Properties>k__BackingField:
-          identifier: 
-          title: Patches
-          description: dwajdiaw
-          icon: {fileID: 21300000, guid: 2e7427838f6d85042a4fb1596025552a, type: 3}
-          cost: 1
-          maxLevel: 2
-          requiresFullyLevelledParentsToUnlock: 1
-          requiresAllParentNodesToUnlock: 1
-        <ParentGuids>k__BackingField:
-        - a7d7ccaf-5a93-407e-a13c-b72c8ee10459
-        - 607608c1-d7c2-4196-841d-89b283ad3aa2
-    - rid: 7225024057328533572
-      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
-      data:
-        _guid: 607608c1-d7c2-4196-841d-89b283ad3aa2
-        _position:
-          serializedVersion: 2
-          x: 213.37396
-          y: 396.5324
-          width: 64
-          height: 64
-        <Properties>k__BackingField:
-          identifier: 
-          title: New Skill Node
-          description: New Skill Node Description
-          icon: {fileID: 21300000, guid: ed2ecdca147d70f4892803ccaa700fc4, type: 3}
-          cost: 1
-          maxLevel: 2
+          maxLevel: 3
           requiresFullyLevelledParentsToUnlock: 0
           requiresAllParentNodesToUnlock: 0
         <ParentGuids>k__BackingField: []
+    - rid: 7225024077902905346
+      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
+      data:
+        _guid: cd20f926-efbe-4a45-9fc2-e22f96a0bb40
+        _position:
+          serializedVersion: 2
+          x: 618.534
+          y: -295.40082
+          width: 64
+          height: 64
+        <Properties>k__BackingField:
+          identifier: 
+          title: New Skill Node
+          description: New Skill Node Description
+          icon: {fileID: 21300000, guid: 6a9f2eed1fed64a4abef59ab3bed7806, type: 3}
+          cost: 1
+          maxLevel: 3
+          requiresFullyLevelledParentsToUnlock: 0
+          requiresAllParentNodesToUnlock: 0
+        <ParentGuids>k__BackingField:
+        - b183aafb-2c9a-4fb8-a72e-b56fd4b74511
+    - rid: 7225024077902905347
+      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
+      data:
+        _guid: fd837943-dbce-445d-a604-155c42852011
+        _position:
+          serializedVersion: 2
+          x: 618.534
+          y: -148.0675
+          width: 64
+          height: 64
+        <Properties>k__BackingField:
+          identifier: 
+          title: New Skill Node
+          description: New Skill Node Description
+          icon: {fileID: 21300000, guid: b8dc907f44ca5274cb756d933cc4c6e4, type: 3}
+          cost: 1
+          maxLevel: 3
+          requiresFullyLevelledParentsToUnlock: 0
+          requiresAllParentNodesToUnlock: 0
+        <ParentGuids>k__BackingField:
+        - ad670abf-65b2-434d-813a-c2997bbbb043
+    - rid: 7225024077902905348
+      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
+      data:
+        _guid: 0b3ccd3c-f07b-4730-baf4-ba04fb61d8e3
+        _position:
+          serializedVersion: 2
+          x: 846.27405
+          y: -295.40082
+          width: 64
+          height: 64
+        <Properties>k__BackingField:
+          identifier: 
+          title: New Skill Node
+          description: New Skill Node Description
+          icon: {fileID: 21300000, guid: 572b4b84b3ba1cb4cbcffefcb04287e0, type: 3}
+          cost: 1
+          maxLevel: 3
+          requiresFullyLevelledParentsToUnlock: 0
+          requiresAllParentNodesToUnlock: 1
+        <ParentGuids>k__BackingField:
+        - fd837943-dbce-445d-a604-155c42852011
+        - cd20f926-efbe-4a45-9fc2-e22f96a0bb40
