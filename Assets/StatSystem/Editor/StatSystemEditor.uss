@@ -1,0 +1,39 @@
+:root {
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    color: rgb(255, 255, 255);
+}
+
+.unity-button {
+    border-radius: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 2px;
+    border-left-width: 0;
+    margin: 0;
+    padding: 4px;
+    -unity-text-align: upper-left;
+    background-color: rgb(63, 52, 52);
+    -unity-text-outline-width: 0;
+    border-left-color: rgb(43, 36, 36);
+    border-right-color: rgb(43, 36, 36);
+    border-top-color: rgb(43, 36, 36);
+    border-bottom-color: rgb(43, 36, 36);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-top: 2px;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    font-size: 12px;
+    -unity-font-style: normal;
+}
+
+.custom-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(0, 0, 0);
+}
