@@ -9,17 +9,19 @@ using UnityEngine.UIElements;
 
 public class StatSystemEditor : EditorWindow
 {
-    [SerializeField] private VisualTreeAsset m_VisualTreeAsset = default;
+    [SerializeField] private VisualTreeAsset visualTreeAsset = default;
 
-    private ScrollView statDefinitionList = null;
-    private VisualElement editingContainer = null;
-    private TextField displayNameField = null;
-    private TextField descriptionField = null;
-    private ObjectField spriteField = null;
-    
+    private ScrollView _statDefinitionList = null;
+    private VisualElement _editingContainer = null;
+    private TextField _displayNameField = null;
+    private TextField _descriptionField = null;
+    private ObjectField _spriteField = null;
+
     private List<StatDefinition> _statDefinitions = new();
     private StatDefinition _selectedStatDefinition = null;
-    
+
+    private Dictionary<StatDefinition, Button> _definitionToButtons = new Dictionary<StatDefinition, Button>();
+
     [MenuItem("Window/UI Toolkit/Stat Definition Editor")]
     public static void ShowExample()
     {
@@ -33,7 +35,7 @@ public class StatSystemEditor : EditorWindow
         VisualElement root = rootVisualElement;
 
         // Instantiate UXML
-        VisualElement labelFromUxml = m_VisualTreeAsset.Instantiate();
+        VisualElement labelFromUxml = visualTreeAsset.Instantiate();
         root.Add(labelFromUxml);
 
         CacheCommonVisualElements();
@@ -41,26 +43,27 @@ public class StatSystemEditor : EditorWindow
         PopulateStatListView();
         CreateSpriteField();
         BindCallbacks();
-        
-        editingContainer.visible = false;
+
+        _editingContainer.visible = false;
     }
 
     private void CreateSpriteField()
     {
-        spriteField = new ObjectField
+        _spriteField = new ObjectField
         {
             objectType = typeof(Sprite),
             label = "Icon"
         };
 
-        editingContainer.Add(spriteField);
+        _spriteField.AddToClassList("StatFields");
+        _editingContainer.Insert(0, _spriteField);
     }
 
     private void BindCallbacks()
     {
-        displayNameField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
-        descriptionField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
-        spriteField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
+        _displayNameField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
+        _descriptionField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
+        _spriteField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
     }
 
     private void LoadStatDefinitions()
@@ -78,18 +81,18 @@ public class StatSystemEditor : EditorWindow
 
     private void CacheCommonVisualElements()
     {
-        statDefinitionList = rootVisualElement.Q<ScrollView>("StatList");
-        editingContainer = rootVisualElement.Q<VisualElement>("EditingContainer");
-        displayNameField = rootVisualElement.Q<TextField>("DisplayNameField");
-        descriptionField = rootVisualElement.Q<TextField>("DescriptionField");
+        _statDefinitionList = rootVisualElement.Q<ScrollView>("StatList");
+        _editingContainer = rootVisualElement.Q<VisualElement>("EditingContainer");
+        _displayNameField = rootVisualElement.Q<TextField>("DisplayNameField");
+        _descriptionField = rootVisualElement.Q<TextField>("DescriptionField");
     }
 
     private void PopulateStatListView()
     {
-        if (statDefinitionList == null) return;
-        
-        statDefinitionList.contentContainer.Clear();
-        
+        if (_statDefinitionList == null) return;
+
+        _statDefinitionList.contentContainer.Clear();
+
         foreach (StatDefinition statDefinition in _statDefinitions)
         {
             string statDefinitionDisplayName = statDefinition.displayName;
@@ -100,31 +103,46 @@ public class StatSystemEditor : EditorWindow
             };
 
             button.clicked += () => OnStatDefinitionClicked(statDefinitionDisplayName);
+            button.iconImage = new Background { sprite = statDefinition.icon };
 
-            statDefinitionList.Add(button);
+            _definitionToButtons.Add(statDefinition, button);
+            _statDefinitionList.Add(button);
         }
     }
 
     private void UpdateStatDefinitionToReflectFields()
     {
         if (_selectedStatDefinition == null) return;
-        
-        _selectedStatDefinition.displayName = displayNameField.text;
-        _selectedStatDefinition.description = descriptionField.text;
-        _selectedStatDefinition.icon = (Sprite)spriteField.value;
-        
+
+        _selectedStatDefinition.displayName = _displayNameField.text;
+        _selectedStatDefinition.description = _descriptionField.text;
+        _selectedStatDefinition.icon = (Sprite)_spriteField.value;
+
         EditorUtility.SetDirty(_selectedStatDefinition);
+
+        if (_definitionToButtons.TryGetValue(_selectedStatDefinition, out var button))
+        {
+            button.text = _selectedStatDefinition.displayName;
+            button.iconImage = new Background { sprite = _selectedStatDefinition.icon };
+        }
     }
-    
+
     private void OnStatDefinitionClicked(string statButton)
     {
+        if (_selectedStatDefinition != null)
+        {
+            _definitionToButtons[_selectedStatDefinition].RemoveFromClassList("selected");
+        }
+
         _selectedStatDefinition = _statDefinitions.Find(x => x.displayName == statButton);
         if (_selectedStatDefinition == null) return;
-        
-        editingContainer.visible = true;
-        
-        spriteField.SetValueWithoutNotify(_selectedStatDefinition .icon);
-        displayNameField.SetValueWithoutNotify(_selectedStatDefinition .displayName);
-        descriptionField.SetValueWithoutNotify(_selectedStatDefinition .description);
+
+        _definitionToButtons[_selectedStatDefinition].AddToClassList("selected");
+
+        _editingContainer.visible = true;
+
+        _spriteField.SetValueWithoutNotify(_selectedStatDefinition.icon);
+        _displayNameField.SetValueWithoutNotify(_selectedStatDefinition.displayName);
+        _descriptionField.SetValueWithoutNotify(_selectedStatDefinition.description);
     }
 }
