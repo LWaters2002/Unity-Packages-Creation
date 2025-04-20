@@ -18,6 +18,7 @@ MonoBehaviour:
   - rid: 7225024077902905346
   - rid: 7225024077902905347
   - rid: 7225024077902905348
+  - rid: 7225024420983865344
   references:
     version: 2
     RefIds:
@@ -27,8 +28,8 @@ MonoBehaviour:
         _guid: b183aafb-2c9a-4fb8-a72e-b56fd4b74511
         _position:
           serializedVersion: 2
-          x: 409.5341
-          y: -295.40082
+          x: 396.1743
+          y: 196.33488
           width: 64
           height: 64
         <Properties>k__BackingField:
@@ -40,15 +41,16 @@ MonoBehaviour:
           maxLevel: 3
           requiresFullyLevelledParentsToUnlock: 0
           requiresAllParentNodesToUnlock: 0
-        <ParentGuids>k__BackingField: []
+        <ParentGuids>k__BackingField:
+        - ad670abf-65b2-434d-813a-c2997bbbb043
     - rid: 7225024077902905345
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
         _guid: ad670abf-65b2-434d-813a-c2997bbbb043
         _position:
           serializedVersion: 2
-          x: 409.5341
-          y: -148.0675
+          x: 389.1743
+          y: 352.3348
           width: 64
           height: 64
         <Properties>k__BackingField:
@@ -67,8 +69,8 @@ MonoBehaviour:
         _guid: cd20f926-efbe-4a45-9fc2-e22f96a0bb40
         _position:
           serializedVersion: 2
-          x: 618.534
-          y: -295.40082
+          x: 605.1742
+          y: 196.33488
           width: 64
           height: 64
         <Properties>k__BackingField:
@@ -82,14 +84,16 @@ MonoBehaviour:
           requiresAllParentNodesToUnlock: 0
         <ParentGuids>k__BackingField:
         - b183aafb-2c9a-4fb8-a72e-b56fd4b74511
+        - e9c484b5-9072-4d44-938d-a5deffcb4a90
+        - ad670abf-65b2-434d-813a-c2997bbbb043
     - rid: 7225024077902905347
       type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
       data:
         _guid: fd837943-dbce-445d-a604-155c42852011
         _position:
           serializedVersion: 2
-          x: 618.534
-          y: -148.0675
+          x: 605.1742
+          y: 344.3348
           width: 64
           height: 64
         <Properties>k__BackingField:
@@ -109,8 +113,8 @@ MonoBehaviour:
         _guid: 0b3ccd3c-f07b-4730-baf4-ba04fb61d8e3
         _position:
           serializedVersion: 2
-          x: 846.27405
-          y: -295.40082
+          x: 791.95715
+          y: 196.33488
           width: 64
           height: 64
         <Properties>k__BackingField:
@@ -124,4 +128,26 @@ MonoBehaviour:
           requiresAllParentNodesToUnlock: 1
         <ParentGuids>k__BackingField:
         - fd837943-dbce-445d-a604-155c42852011
+        - cd20f926-efbe-4a45-9fc2-e22f96a0bb40
+        - e9c484b5-9072-4d44-938d-a5deffcb4a90
+    - rid: 7225024420983865344
+      type: {class: SkillTreeNodeData, ns: SkillTree.Runtime, asm: SkillTreeRuntime}
+      data:
+        _guid: e9c484b5-9072-4d44-938d-a5deffcb4a90
+        _position:
+          serializedVersion: 2
+          x: 791.95715
+          y: -4.7199974
+          width: 64
+          height: 64
+        <Properties>k__BackingField:
+          identifier: 
+          title: New Skill Node
+          description: New Skill Node Description
+          icon: {fileID: 0}
+          cost: 1
+          maxLevel: 0
+          requiresFullyLevelledParentsToUnlock: 0
+          requiresAllParentNodesToUnlock: 0
+        <ParentGuids>k__BackingField:
         - cd20f926-efbe-4a45-9fc2-e22f96a0bb40

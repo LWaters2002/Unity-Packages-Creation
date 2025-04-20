@@ -81,7 +81,7 @@ namespace SkillTree.Editor
 
             Vector2 startPos = new Vector2(_startNode.layout.x, _startNode.layout.y) +
                 new Vector2(_startNode.resolvedStyle.width, _startNode.resolvedStyle.height) / 2 - Vector2.one * 8.0f;
-            Vector2 endPos = evt.mousePosition;
+            Vector2 endPos = _graphView.WorldToLocal(evt.mousePosition);
 
             _currentTransition = new SkillTreeEditorNodeTransition(startPos, endPos);
             _graphView?.AddElement(_currentTransition);
