@@ -11,8 +11,9 @@ namespace SkillTree.Runtime
     {
         [SerializeField] private int skillPoints;
 
-        public float zoomSensitivity = .2f;
-
+        [SerializeField] private float zoomSensitivity = .2f;
+        [SerializeField] private float zoomSmoothing = 5.0f;
+        
         [Header("References")] [SerializeField]
         public SkillTreeAsset skillTreeAsset;
 
@@ -142,7 +143,7 @@ namespace SkillTree.Runtime
                 contentContainer.transform.position = (Vector2)contentContainer.transform.position + pos;
             }
 
-            canvas.scaleFactor = Mathf.Lerp(canvas.scaleFactor, _targetZoom, Time.deltaTime * 5.0f);
+            canvas.scaleFactor = Mathf.Lerp(canvas.scaleFactor, _targetZoom, Time.deltaTime * zoomSmoothing);
         }
     }
 }
