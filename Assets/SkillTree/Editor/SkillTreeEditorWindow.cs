@@ -24,7 +24,6 @@ namespace SkillTree.Editor
             SkillTreeEditorWindow[] windows = Resources.FindObjectsOfTypeAll<SkillTreeEditorWindow>();
             foreach (SkillTreeEditorWindow window in windows)
             {
-                window.graphView?.ClearGraph();
                 window.Close();
             }
 

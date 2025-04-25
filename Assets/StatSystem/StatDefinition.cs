@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace StatSystem
 {
-    [CreateAssetMenu(fileName = "StatDefinition", menuName = "StatSystem/StatDefinition")]
+    [CreateAssetMenu(fileName = "Stat Definition", menuName = "StatSystem/StatDefinition")]
     public class StatDefinition : ScriptableObject
     {
         public Sprite icon;
