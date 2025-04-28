@@ -22,7 +22,7 @@ public class StatSystemEditor : EditorWindow
 
     private Dictionary<StatDefinition, Button> _definitionToButtons = new Dictionary<StatDefinition, Button>();
 
-    [MenuItem("Window/UI Toolkit/Stat Definition Editor")]
+    [MenuItem("Window/Stat System/Stat Definition Editor")]
     public static void ShowExample()
     {
         StatSystemEditor wnd = GetWindow<StatSystemEditor>();

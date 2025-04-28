@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace StatSystem
@@ -7,7 +8,8 @@ namespace StatSystem
     [Serializable]
     public class Stat
     {
-        public float Base { get; }
+        [field : SerializeField]
+        public float Base { get; set; }
         public float Value { get; private set; }
 
         private List<StatModifier> Modifiers = new();
@@ -21,7 +23,7 @@ namespace StatSystem
         public Stat(float baseValue, List<StatModifier> modifiers)
         {
             Base = baseValue;
-            
+
             foreach (var modifier in modifiers)
                 AddModifier(modifier, false);
             UpdateValue();
@@ -31,7 +33,7 @@ namespace StatSystem
         {
             float temp = Base;
             float multiplier = 1;
-            
+
             foreach (StatModifier modifier in Modifiers)
             {
                 if (modifier.addOrMultiply)
@@ -43,7 +45,7 @@ namespace StatSystem
                     multiplier += modifier.value;
                 }
             }
-            
+
             temp *= multiplier;
             Value = temp;
         }
@@ -51,7 +53,7 @@ namespace StatSystem
         public void AddModifier(StatModifier modifier, bool dirty = true)
         {
             Modifiers.Add(modifier);
-            
+
             if (dirty)
                 UpdateValue();
         }
@@ -64,7 +66,7 @@ namespace StatSystem
                 if (modifier.owner == obj)
                     Modifiers.RemoveAt(i);
             }
-            
+
             UpdateValue();
         }
 
@@ -76,7 +78,7 @@ namespace StatSystem
                 if (modifier.guid == guid)
                     Modifiers.RemoveAt(i);
             }
-            
+
             UpdateValue();
         }
     }
@@ -93,7 +95,7 @@ namespace StatSystem
         {
             this.addOrMultiply = addOrMultiply;
             this.value = value;
-            this.owner = owner;      
+            this.owner = owner;
             guid = Guid.NewGuid();
         }
     }
