@@ -32,8 +32,8 @@ namespace SkillTree.Editor
             AddToClassList("skillTreeEditorNodeInspector");
 
             StyleSheet styleSheet =
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                    "Assets/SkillTree/Editor/USS/SkillTreeEditorNodeInspector.uss");
+                Resources.Load<StyleSheet>(
+                    "StyleSheets/SkillTreeEditorNodeInspector");
             styleSheets.Add(styleSheet);
 
             CreateSpriteSelector();

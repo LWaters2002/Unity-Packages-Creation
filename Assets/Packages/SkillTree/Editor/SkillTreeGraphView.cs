@@ -1,19 +1,16 @@
 using System;
 using System.Collections.Generic;
 using SkillTree.Runtime;
-using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Linq;
-using SkillTree.Runtime.UI;
 
 namespace SkillTree.Editor
 {
     public class SkillTreeGraphView : GraphView
     {
-        private SerializedObject _serializedObject;
+        private readonly SerializedObject _serializedObject;
         public SkillTreeAsset CurrentSkillTreeAsset { get; set; }
 
         public List<SkillTreeEditorNodeTransition> NodeTransitions { get; set; } = new();
@@ -21,8 +18,10 @@ namespace SkillTree.Editor
         public SkillTreeEditorWindow EditorWindow { get; private set; }
         public Dictionary<string, SkillTreeEditorNode> NodeLookup { get; private set; }
         public List<SkillTreeEditorNode> SkillTreeNodes { get; private set; }
+        public Label CentreLabel { get; private set; }
 
-        private SkillTreeEditorNodeInspector _nodeInspector;
+        private readonly SkillTreeEditorNodeInspector _nodeInspector;
+
 
         public SkillTreeGraphView(SerializedObject serializedObject, SkillTreeEditorWindow editorWindow)
         {
@@ -32,25 +31,71 @@ namespace SkillTree.Editor
             EditorWindow = editorWindow;
             CurrentSkillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
 
+            LoadStyleSheets();
+            SetupBackground();
+            AddManipulators();
+
             RegisterCallback<KeyDownEvent>(OnKeyDown);
             _nodeInspector = new SkillTreeEditorNodeInspector(this);
             Add(_nodeInspector);
             _nodeInspector.BringToFront();
+        }
 
-            LoadStyleSheets();
-            SetupBackground();
-            AddManipulators();
+        public void AddCentreLabel()
+        {
+            CentreLabel = new Label("+");
+            CentreLabel.AddToClassList("CentreCross");
+            CentreLabel.pickingMode = PickingMode.Ignore;
+            CentreLabel.SendToBack();
+            contentViewContainer.Insert(0, CentreLabel);
         }
 
         private void OnKeyDown(KeyDownEvent evt)
         {
-            switch (evt.keyCode)
+            var shortcuts = new Dictionary<KeyCode, Action>()
             {
-                case KeyCode.Q:
+                { KeyCode.R, this.Refresh },
+                { KeyCode.Q, StraightenNodes },
+                { KeyCode.W, SpaceEquidistant }
+            };
+
+            if (shortcuts.ContainsKey(evt.keyCode) == false) return;
+            shortcuts[evt.keyCode].Invoke();
+        }
+
+        private void SpaceEquidistant()
+        {
+            if (selection.Count == 0) return;
+
+            Vector2 positionStep = Vector2.zero;
+
+            foreach (var selected in selection)
+            {
+                if (selected is not SkillTreeEditorNode node) continue;
+                positionStep += node.layout.position;
+            }
+
+            positionStep /= selection.Count;
+            Vector3 relativeAveragePosition = -((VisualElement)selection[0]).layout.position;
+
+            bool xOrY = Mathf.Abs(positionStep.x) < MathF.Abs(positionStep.y);
+            for (int index = 0; index < selection.Count; index++)
+            {
+                Vector3 newPosition = ((Vector3)positionStep * index) + relativeAveragePosition;
+                var selected = selection[index];
+                if (selected is not SkillTreeEditorNode node) continue;
+                Rect rect = node.GetPosition();
+
+                if (xOrY)
                 {
-                    StraightenNodes();
-                    break;
+                    rect.x = newPosition.x;
                 }
+                else
+                {
+                    rect.y = newPosition.y;
+                }
+
+                node.SetPosition(rect);
             }
         }
 
@@ -82,13 +127,14 @@ namespace SkillTree.Editor
                 {
                     rect.y = averagePosition.y;
                 }
+
                 node.SetPosition(rect);
             }
         }
 
         protected override void HandleEventBubbleUp(EventBase evt)
         {
-            if (evt is ExecuteCommandEvent commandEvent && commandEvent.commandName == "SoftDelete")
+            if (evt is ExecuteCommandEvent { commandName: "SoftDelete" })
             {
                 foreach (var selected in selection)
                 {
@@ -127,15 +173,15 @@ namespace SkillTree.Editor
 
         private void LoadStyleSheets()
         {
-            List<string> paths = new List<string>()
+            var paths = new List<string>()
             {
-                "Assets/SkillTree/Editor/USS/SkillTreeEditor.uss",
-                "Assets/SkillTree/Editor/USS/Node.uss"
+                "StyleSheets/SkillTreeEditor",
+                "StyleSheets/SkillTreeEditorNode"
             };
 
             foreach (string path in paths)
             {
-                StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
+                StyleSheet styleSheet = Resources.Load<StyleSheet>(path);
                 styleSheets.Add(styleSheet);
             }
         }
@@ -154,8 +200,10 @@ namespace SkillTree.Editor
 
         private void SetupBackground()
         {
-            GridBackground background = new GridBackground();
-            background.name = "Grid";
+            GridBackground background = new GridBackground
+            {
+                name = "Grid"
+            };
 
             background.StretchToParentSize();
 
@@ -226,8 +274,11 @@ namespace SkillTree.Editor
 
             mousePos = contentViewContainer.WorldToLocal(mousePos);
 
-            SkillTreeNodeData node = new SkillTreeNodeData();
-            node.ID = Guid.NewGuid().ToString();
+            SkillTreeNodeData node = new SkillTreeNodeData
+            {
+                ID = Guid.NewGuid().ToString()
+            };
+
             node.SetPosition(new Rect(mousePos.x, mousePos.y, 64, 64));
             node.SetProperties(new NodeProperties()
             {
@@ -245,13 +296,15 @@ namespace SkillTree.Editor
             Undo.RecordObject(_serializedObject.targetObject, "Added Node");
 
             CurrentSkillTreeAsset.Nodes.Add(nodeData);
+            SkillTreeNodes.Add(node);
+
             UpdateAsset();
         }
 
         public void AddNodeToGraph(SkillTreeNodeData node, bool registerToObject = true)
         {
             SkillTreeEditorNode newNode = new SkillTreeEditorNode(node, this);
-            newNode.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/SkillTree/Editor/USS/Node.uss"));
+            newNode.styleSheets.Add(Resources.Load<StyleSheet>($"StyleSheets/SkillTreeEditorNode"));
             newNode.SetPosition(node.Position);
             newNode.BringToFront();
 

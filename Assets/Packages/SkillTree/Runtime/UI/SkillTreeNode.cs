@@ -8,6 +8,18 @@ using Image = UnityEngine.UI.Image;
 
 namespace SkillTree.Runtime.UI
 {
+    public struct UISkillLevelUp : ISkillTreeEvent
+    {
+        public string identifier;
+        public int newLevel;
+
+        public UISkillLevelUp(string identifier, int newLevel)
+        {
+            this.identifier = identifier;
+            this.newLevel = newLevel;
+        }
+    }
+    
     public class SkillTreeNode : MonoBehaviour
     {
         [Header("References")] [SerializeField]
@@ -29,7 +41,9 @@ namespace SkillTree.Runtime.UI
             _skillTreeViewer.OnNodeStateChanged += NodesUpdated;
 
             Vector2 pos = new Vector2(inData.Position.x, -inData.Position.y);
-            transform.position = pos;
+            transform.localPosition = pos;
+            transform.localScale = Vector3.one;
+            
             icon.sprite = inData.Properties.icon;
 
             runtimeData = new RuntimeNodeData
@@ -60,7 +74,7 @@ namespace SkillTree.Runtime.UI
             
             UpdateLevelText();
             _skillTreeViewer.OnNodeStateChanged?.Invoke(data.ID);
-            SkillTreeEvents.OnSkillTreeLevelUp?.Invoke(data.Properties.identifier, runtimeData.level);
+            SkillTreeEventBus<UISkillLevelUp>.Execute(new UISkillLevelUp(data.Properties.identifier, runtimeData.level));
         }
 
         private void UpdateLevelText() => levelText.text = $"{runtimeData.level}/{data.Properties.maxLevel}";

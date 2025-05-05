@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Codice.Client.BaseCommands.Import;
 using StatSystem;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -40,7 +41,6 @@ public class StatSystemEditor : EditorWindow
 
         CacheCommonVisualElements();
         LoadStatDefinitions();
-        PopulateStatListView();
         CreateSpriteField();
         BindCallbacks();
 
@@ -64,10 +64,38 @@ public class StatSystemEditor : EditorWindow
         _displayNameField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
         _descriptionField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
         _spriteField.RegisterValueChangedCallback(_ => UpdateStatDefinitionToReflectFields());
+        
+        if (rootVisualElement.Q<Button>("NewStatDefinitionButton") is { } newStatButton)
+        {
+            newStatButton.clicked += CreateNewStat;
+        }
+    }
+
+    private void CreateNewStat()
+    {
+        if (rootVisualElement.Q<TextField>("NewStatLabel") is not { } newStatLabel) return;
+        string newName = newStatLabel.text;
+        if (newName == "") return;
+
+        newStatLabel.SetValueWithoutNotify("");
+
+        string rootFolder = "Assets/StatDefinitions/";
+
+        if (AssetDatabase.IsValidFolder(rootFolder) == false)
+            AssetDatabase.CreateFolder("Assets", "StatDefinitions");
+
+        StatDefinition newStatDefinition = CreateInstance<StatDefinition>();
+        newStatDefinition.displayName = newName;
+        AssetDatabase.CreateAsset(newStatDefinition, rootFolder + newName + ".asset");
+        AssetDatabase.SaveAssets();
+
+        LoadStatDefinitions();
     }
 
     private void LoadStatDefinitions()
     {
+        _statDefinitions.Clear();
+        
         string[] guids = AssetDatabase.FindAssets($"t:{typeof(StatDefinition)}");
 
         foreach (string guid in guids)
@@ -77,6 +105,8 @@ public class StatSystemEditor : EditorWindow
             if (AssetDatabase.LoadAssetAtPath<StatDefinition>(path) is { } statDefinition)
                 _statDefinitions.Add(statDefinition);
         }
+        
+        PopulateStatListView();
     }
 
     private void CacheCommonVisualElements()
@@ -92,7 +122,9 @@ public class StatSystemEditor : EditorWindow
         if (_statDefinitionList == null) return;
 
         _statDefinitionList.contentContainer.Clear();
-
+        _definitionToButtons.Clear();
+        _statDefinitionList.Clear();
+        
         foreach (StatDefinition statDefinition in _statDefinitions)
         {
             string statDefinitionDisplayName = statDefinition.displayName;

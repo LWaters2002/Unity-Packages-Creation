@@ -24,7 +24,7 @@ namespace StatSystem.Editor
         private Button _saveButton;
 
         private Dictionary<StatDefinition, Button> _statButtons = new();
-        
+
         [MenuItem("Window/Stat System/Stat Table Editor")]
         public static void ShowExample()
         {
@@ -40,7 +40,7 @@ namespace StatSystem.Editor
                 window.Close();
 
             StatTableEditorWindow newWindow =
-                CreateWindow<StatTableEditorWindow>(typeof(StatTableEditorWindow), typeof(SceneView));
+                CreateWindow<StatTableEditorWindow>(typeof(StatTableEditorWindow), typeof(StatSystemEditor));
             newWindow.SelectStatTable(targetAsset);
         }
 
@@ -142,6 +142,8 @@ namespace StatSystem.Editor
 
             SelectStatTable(_selectedTable);
             SelectStat(statDefinition);
+            
+            dropdownField.SetValueWithoutNotify("");
         }
 
         private void CreateNewStatTable()
@@ -159,6 +161,8 @@ namespace StatSystem.Editor
 
             AssetDatabase.CreateAsset(CreateInstance<StatTable>(), rootFolder + newName + ".asset");
             AssetDatabase.SaveAssets();
+            
+            textField.SetValueWithoutNotify("");
 
             GenerateStatTables();
         }
@@ -166,8 +170,17 @@ namespace StatSystem.Editor
         private void SelectStat(StatDefinition statDefinition)
         {
             _lastSelectedStatButton?.RemoveFromClassList("selected");
-            _lastSelectedStatButton = _statButtons[statDefinition];
-            _lastSelectedStatButton?.AddToClassList("selected");
+
+            if (_statButtons.TryGetValue(statDefinition, out var button))
+            {
+                _lastSelectedStatButton = button;
+                _lastSelectedStatButton?.AddToClassList("selected");
+            }
+            else
+            {
+                _lastSelectedStatButton = null;
+            }
+
             _selectedDefinition = statDefinition;
 
             if (_selectedTable.Contains(statDefinition) == false) return;
@@ -233,8 +246,8 @@ namespace StatSystem.Editor
             _selectedTable = table;
 
             UpdateStatList(table);
-
-            List<StatKeyPair> statLookup = _statTables[0].StatLookup;
+            
+            List<StatKeyPair> statLookup = table.StatLookup;
             if (statLookup.Count == 0) return;
 
             SelectStat(statLookup[0].statDefinition);
@@ -243,7 +256,7 @@ namespace StatSystem.Editor
         private void UpdateStatList(StatTable table)
         {
             _statButtons.Clear();
-            
+
             ScrollView scrollView = rootVisualElement.Q<ScrollView>("StatList");
 
             if (scrollView == null) return;
@@ -252,16 +265,16 @@ namespace StatSystem.Editor
             foreach (var statPair in table.StatLookup)
             {
                 StatDefinition statDefinition = statPair.statDefinition;
-                
+
                 Button button = new Button
                 {
                     text = statDefinition.displayName,
                 };
-    
+
                 button.clicked += () => SelectStat(statDefinition);
-                    
+
                 _statButtons.Add(statDefinition, button);
-                
+
                 scrollView.Add(button);
             }
         }

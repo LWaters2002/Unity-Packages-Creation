@@ -1,3 +1,4 @@
+using System;
 using SkillTree.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +19,24 @@ namespace SkillTree.Editor
             GUILayout.Label("Skill Tree Editor", EditorStyles.boldLabel);
         }
 
+        private void OnEnable()
+        {
+            EditorApplication.projectChanged += RefreshWindow;
+        }
+
+        private void OnDisable()
+        {
+            EditorApplication.projectChanged -= RefreshWindow;
+        }
+        
+        private void RefreshWindow()
+        {
+            if (activeSkillTreeAsset == null) return;
+            
+            Open(activeSkillTreeAsset);
+            Repaint();
+        }
+        
         // ReSharper disable Unity.PerformanceAnalysis
         public static void Open(SkillTreeAsset targetAsset)
         {

@@ -34,23 +34,23 @@ namespace SkillTree.Editor
                 }   
             }
             
-            VisualElement centrePoint = new VisualElement();
-            centrePoint.AddToClassList("centre-point");
-            graphView.contentViewContainer.Children().ToArray()[0].Add(centrePoint);
+            graphView.AddCentreLabel();
         }
 
-        public static void ClearGraph(this SkillTreeGraphView graphView)
+        private static void ClearGraph(this SkillTreeGraphView graphView)
         {
             graphView.NodeLookup.Clear();
             graphView.NodeTransitions.Clear();
             graphView.SkillTreeNodes.Clear();
-
+            graphView.CentreLabel?.RemoveFromHierarchy();
+            
             foreach (VisualElement child in graphView.contentViewContainer.Children())
             {
                 if (child.childCount == 0) continue;
                 child.Clear();
             }
         }
+        
         public static SkillTreeNodeData GetSkillTreeNodeDataIndex(this SkillTreeGraphView graphView, string guid)
         {
             return graphView.CurrentSkillTreeAsset == null ? null : graphView.CurrentSkillTreeAsset.Nodes.Find(x => x.ID == guid);

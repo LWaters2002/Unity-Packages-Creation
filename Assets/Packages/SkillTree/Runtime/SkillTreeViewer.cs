@@ -53,11 +53,13 @@ namespace SkillTree.Runtime
         public void ResetSkillTree() // Can be called from UnityActions
         {
             int resetSkillPoints = skillPoints + Nodes.Values.Sum(node => node.GetCost() * node.GetLevel());
-
+            
             foreach (Transform childTransform in contentContainer.transform)
             {
                 Destroy(childTransform.gameObject);
             }
+
+            contentContainer.transform.localPosition = Vector2.zero;
 
             skillPoints = resetSkillPoints;
             OnSkillPointChanged?.Invoke(skillPoints);
@@ -108,6 +110,7 @@ namespace SkillTree.Runtime
                 SkillTreeNode newNode =
                     Instantiate(nodePrefab, contentContainer.transform).GetComponent<SkillTreeNode>();
                 newNode.Init(this, nodeData);
+                
                 Nodes.Add(nodeData.ID, newNode);
             }
 

@@ -442,8 +442,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillPoints: 200
-  zoomSensitivity: 0.2
-  zoomSmoothing: 5
+  zoomSensitivity: 0.1
+  zoomSmoothing: 10
   skillTreeAsset: {fileID: 11400000, guid: 6b61501cd0434b24ca4bdc1b12baef5a, type: 2}
   skillPointText: {fileID: 1245652462891648251}
   nodePrefab: {fileID: 2823875920082209385, guid: 03e56d766f117194fbe3c21aed1fad2a, type: 3}

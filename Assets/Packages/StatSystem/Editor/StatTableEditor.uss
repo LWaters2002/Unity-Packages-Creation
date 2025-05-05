@@ -23,6 +23,10 @@
     height: 24px;
 }
 
+.selected {
+    background-color: #2e2e2e;
+}
+
 .CreationButtons {
     width: 100%;
     height: 64px;
