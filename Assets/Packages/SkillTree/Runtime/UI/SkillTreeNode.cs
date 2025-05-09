@@ -1,25 +1,23 @@
 using System.Linq;
 using TMPro;
-using UnityEditor.Graphs;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
 using Image = UnityEngine.UI.Image;
 
 namespace SkillTree.Runtime.UI
 {
-    public struct UISkillLevelUp : ISkillTreeEvent
+    public struct ESkillNodeLevelUp : ISkillTreeEvent
     {
         public string identifier;
         public int newLevel;
 
-        public UISkillLevelUp(string identifier, int newLevel)
+        public ESkillNodeLevelUp(string identifier, int newLevel)
         {
             this.identifier = identifier;
             this.newLevel = newLevel;
         }
     }
-    
+
     public class SkillTreeNode : MonoBehaviour
     {
         [Header("References")] [SerializeField]
@@ -33,6 +31,8 @@ namespace SkillTree.Runtime.UI
 
         private SkillTreeViewer _skillTreeViewer;
         private Button button;
+
+        public System.Action<bool> OnStateUpdated;
 
         public void Init(SkillTreeViewer skillTreeViewer, SkillTreeNodeData inData)
         {
@@ -59,7 +59,10 @@ namespace SkillTree.Runtime.UI
 
         private void OnButtonClick()
         {
-            if (_skillTreeViewer.Buy(data.Properties.cost))
+            bool hasEnoughSkillPoints = _skillTreeViewer.CanBuy(data.Properties.cost);
+            bool notAtMaxLevel = data.Properties.maxLevel != runtimeData.level;
+            
+            if (hasEnoughSkillPoints && notAtMaxLevel)
             {
                 LevelUp();
             }
@@ -74,7 +77,7 @@ namespace SkillTree.Runtime.UI
             
             UpdateLevelText();
             _skillTreeViewer.OnNodeStateChanged?.Invoke(data.ID);
-            SkillTreeEventBus<UISkillLevelUp>.Execute(new UISkillLevelUp(data.Properties.identifier, runtimeData.level));
+            SkillTreeEventBus<ESkillNodeLevelUp>.Execute(new ESkillNodeLevelUp(data.Properties.identifier, runtimeData.level));
         }
 
         private void UpdateLevelText() => levelText.text = $"{runtimeData.level}/{data.Properties.maxLevel}";
@@ -124,6 +127,7 @@ namespace SkillTree.Runtime.UI
             
             runtimeData.isUnlocked = setUnlock;
             _skillTreeViewer.OnNodeStateChanged?.Invoke(data.ID);
+            OnStateUpdated?.Invoke(setUnlock);
         }
         
         public int GetCost() => data.Properties.cost;

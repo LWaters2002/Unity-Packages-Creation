@@ -21,7 +21,7 @@ namespace SkillTree.Editor
         public Label CentreLabel { get; private set; }
 
         private readonly SkillTreeEditorNodeInspector _nodeInspector;
-
+        private Dictionary<Tuple<KeyCode, EventModifiers>, Tuple<Action, string>> _shortcuts;
 
         public SkillTreeGraphView(SerializedObject serializedObject, SkillTreeEditorWindow editorWindow)
         {
@@ -31,14 +31,62 @@ namespace SkillTree.Editor
             EditorWindow = editorWindow;
             CurrentSkillTreeAsset = serializedObject.targetObject as SkillTreeAsset;
 
+            RegisterShortcuts();
             LoadStyleSheets();
             SetupBackground();
             AddManipulators();
+            SetupRightClickMenu();
 
             RegisterCallback<KeyDownEvent>(OnKeyDown);
             _nodeInspector = new SkillTreeEditorNodeInspector(this);
             Add(_nodeInspector);
             _nodeInspector.BringToFront();
+        }
+
+        private void SetupRightClickMenu()
+        {
+            var contextManipulator = new ContextualMenuManipulator(evt =>
+            {
+                foreach (var shortcut in _shortcuts)
+                {
+                    string shortcutLabel =
+                        shortcut.Key.Item2 == EventModifiers.None
+                            ? ""
+                            : shortcut.Key.Item2 + " + ";
+                    shortcutLabel += $"{shortcut.Key.Item1.ToString()}";
+
+                    evt.menu.AppendAction
+                    (
+                        $"[{shortcutLabel}] {shortcut.Value.Item2}",
+                        (_) => shortcut.Value.Item1.Invoke()
+                    );
+                }
+            });
+
+            this.AddManipulator(contextManipulator);
+        }
+
+        private void RegisterShortcuts()
+        {
+            _shortcuts = new Dictionary<Tuple<KeyCode, EventModifiers>, Tuple<Action, string>>()
+            {
+                {
+                    new Tuple<KeyCode, EventModifiers>(KeyCode.A, EventModifiers.None),
+                    new Tuple<Action, string>(this.AddNodeAction, "Create new skill node")
+                },
+                {
+                    new Tuple<KeyCode, EventModifiers>(KeyCode.R, EventModifiers.None),
+                    new Tuple<Action, string>(this.Refresh, "Refresh Nodes")
+                },
+                {
+                    new Tuple<KeyCode, EventModifiers>(KeyCode.Q, EventModifiers.None),
+                    new Tuple<Action, string>(this.StraightenNodes, "Straighten Nodes")
+                },
+                {
+                    new Tuple<KeyCode, EventModifiers>(KeyCode.Q, EventModifiers.Shift),
+                    new Tuple<Action, string>(this.SpaceEquidistant, "Space Equidistant")
+                }
+            };
         }
 
         public void AddCentreLabel()
@@ -52,15 +100,10 @@ namespace SkillTree.Editor
 
         private void OnKeyDown(KeyDownEvent evt)
         {
-            var shortcuts = new Dictionary<KeyCode, Action>()
-            {
-                { KeyCode.R, this.Refresh },
-                { KeyCode.Q, StraightenNodes },
-                { KeyCode.W, SpaceEquidistant }
-            };
+            Tuple<KeyCode, EventModifiers> keyEvent = new(evt.keyCode, evt.modifiers);
 
-            if (shortcuts.ContainsKey(evt.keyCode) == false) return;
-            shortcuts[evt.keyCode].Invoke();
+            if (_shortcuts.ContainsKey(keyEvent) == false) return;
+            _shortcuts[keyEvent].Item1.Invoke();
         }
 
         private void SpaceEquidistant()
@@ -73,28 +116,18 @@ namespace SkillTree.Editor
             {
                 if (selected is not SkillTreeEditorNode node) continue;
                 positionStep += node.layout.position;
+                positionStep -= ((VisualElement)selection[0]).layout.position;
             }
 
             positionStep /= selection.Count;
-            Vector3 relativeAveragePosition = -((VisualElement)selection[0]).layout.position;
 
-            bool xOrY = Mathf.Abs(positionStep.x) < MathF.Abs(positionStep.y);
+            bool horizontalOrVertical = AreNodesHorizontalOrVertical();
             for (int index = 0; index < selection.Count; index++)
             {
-                Vector3 newPosition = ((Vector3)positionStep * index) + relativeAveragePosition;
                 var selected = selection[index];
                 if (selected is not SkillTreeEditorNode node) continue;
+
                 Rect rect = node.GetPosition();
-
-                if (xOrY)
-                {
-                    rect.x = newPosition.x;
-                }
-                else
-                {
-                    rect.y = newPosition.y;
-                }
-
                 node.SetPosition(rect);
             }
         }
@@ -103,23 +136,15 @@ namespace SkillTree.Editor
         {
             if (selection.Count == 0) return;
 
-            Vector2 averagePosition = Vector2.zero;
+            Vector2 averagePosition = GetAveragePositionOfNodes();
 
-            foreach (var selected in selection)
-            {
-                if (selected is not SkillTreeEditorNode node) continue;
-                averagePosition += node.layout.position;
-            }
-
-            averagePosition /= selection.Count;
-            Vector3 relativeAveragePosition = averagePosition - ((VisualElement)selection[0]).layout.position;
-
-            bool xOrY = Mathf.Abs(relativeAveragePosition.x) < MathF.Abs(relativeAveragePosition.y);
+            bool horizontalOrVertical = AreNodesHorizontalOrVertical();
             foreach (ISelectable selected in selection)
             {
                 if (selected is not SkillTreeEditorNode node) continue;
                 Rect rect = node.GetPosition();
-                if (xOrY)
+
+                if (horizontalOrVertical)
                 {
                     rect.x = averagePosition.x;
                 }
@@ -130,6 +155,28 @@ namespace SkillTree.Editor
 
                 node.SetPosition(rect);
             }
+        }
+
+        private bool AreNodesHorizontalOrVertical()
+        {
+            Vector2 averagePosition = GetAveragePositionOfNodes();
+            Vector2 relativeAveragePosition = averagePosition - ((VisualElement)selection[0]).layout.position;
+            return Mathf.Abs(relativeAveragePosition.x) < MathF.Abs(relativeAveragePosition.y);
+        }
+
+        private Vector2 GetAveragePositionOfNodes()
+        {
+            Vector2 averagePosition = Vector2.zero;
+
+            foreach (var selected in selection)
+            {
+                if (selected is not SkillTreeEditorNode node) continue;
+                averagePosition += node.layout.position;
+            }
+
+            averagePosition /= selection.Count;
+
+            return averagePosition;
         }
 
         protected override void HandleEventBubbleUp(EventBase evt)
@@ -218,11 +265,6 @@ namespace SkillTree.Editor
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new ClickSelector());
-            this.AddManipulator(new ContextualMenuManipulator(evt =>
-            {
-                evt.menu.AppendAction("Create new skill node", AddNodeAction);
-                evt.menu.AppendAction("Force Refresh", (_) => this.Refresh());
-            }));
         }
 
         public void TransitionCreated(SkillTreeEditorNodeTransition transition, bool registerObject = true)
@@ -268,10 +310,9 @@ namespace SkillTree.Editor
             }
         }
 
-        private void AddNodeAction(DropdownMenuAction dropdownMenuAction)
+        private void AddNodeAction()
         {
-            Vector2 mousePos = dropdownMenuAction.eventInfo.mousePosition;
-
+            Vector2 mousePos = Input.mousePosition;
             mousePos = contentViewContainer.WorldToLocal(mousePos);
 
             SkillTreeNodeData node = new SkillTreeNodeData

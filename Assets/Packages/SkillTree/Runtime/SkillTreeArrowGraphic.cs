@@ -1,124 +1,72 @@
+using SkillTree.Runtime;
+using SkillTree.Runtime.UI;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
-public class SkillTreeArrowGraphic : MaskableGraphic
+[ExecuteAlways]
+public class SkillTreeArrowGraphic : MonoBehaviour
 {
-    [SerializeField, Range(0, 1)] private float arrowPosition = 0.5f;
-    [SerializeField, Range(0, 5)] private float arrowWidth = 1.0f;
-    [SerializeField] private float lineWidth = 5f;
-    [SerializeField] private float arrowSize = 20f;
-    [SerializeField] private Vector2 startPoint = new Vector2(0, 0);
-    [SerializeField] private Vector2 endPoint = new Vector2(100, 100);
-
-    public float ArrowPosition
-    {
-        get => arrowPosition;
-        set { arrowPosition = Mathf.Clamp01(value); SetVerticesDirty(); }
-    }
+    public UnityEvent OnConnectedSkillLocked;
+    public UnityEvent OnConnectedSkillUnlocked;
     
-    public float ArrowWidth
+    [SerializeField] private bool shouldShowArrow = true;
+    [SerializeField] private RectTransform lineTransform;
+    [SerializeField] private RectTransform slidingImageTransform;
+    [SerializeField] private Vector2 startPoint;
+    [SerializeField] private Vector2 endPoint;
+
+    private void SetStartPoint(Vector2 point) => startPoint = point;
+    private void SetEndPoint(Vector2 point) => endPoint = point;
+
+    public void Init(SkillTreeNode startNode, SkillTreeNode parentNode)
     {
-        get => arrowWidth;
-        set { arrowWidth = value; SetVerticesDirty(); }
-    }
+        SetStartPoint(startNode.transform.localPosition);
+        SetEndPoint(parentNode.transform.localPosition);
 
-    public float LineWidth
-    {
-        get => lineWidth;
-        set { lineWidth = value; SetVerticesDirty(); }
-    }
+        UpdateGraphics();
 
-    public float ArrowSize
-    {
-        get => arrowSize;
-        set { arrowSize = value; SetVerticesDirty(); }
-    }
-
-    public Vector2 StartPoint
-    {
-        get => startPoint;
-        set { startPoint = value; SetVerticesDirty(); }
-    }
-
-    public Vector2 EndPoint
-    {
-        get => endPoint;
-        set { endPoint = value; SetVerticesDirty(); }
-    }
-
-    protected override void OnPopulateMesh(VertexHelper vh)
-    {
-        vh.Clear();
-
-        // Calculate the arrow position along the line
-        Vector2 arrowPoint = Vector2.Lerp(startPoint, endPoint, arrowPosition);
-
-        // Draw the line segments
-        DrawLineSegment(vh, startPoint, endPoint);
-        
-        // Draw the arrowhead
-        DrawArrowHead(vh, arrowPoint, endPoint);
-    }
-
-    private void DrawLineSegment(VertexHelper vh, Vector2 start, Vector2 end)
-    {
-        Vector2 direction = (end - start).normalized;
-        Vector2 perpendicular = new Vector2(-direction.y, direction.x) * lineWidth * 0.5f;
-
-        UIVertex[] vertices = new UIVertex[4];
-        
-        vertices[0].position = start - perpendicular;
-        vertices[1].position = start + perpendicular;
-        vertices[2].position = end + perpendicular;
-        vertices[3].position = end - perpendicular;
-
-        for (int i = 0; i < 4; i++)
+        slidingImageTransform.gameObject.SetActive(shouldShowArrow);
+    
+        if (parentNode.GetIsUnlocked())
         {
-            vertices[i].color = color;
-            vertices[i].uv0 = Vector2.zero;
+            ConnectedSkillUnlocked();
         }
-
-        vh.AddVert(vertices[0]);
-        vh.AddVert(vertices[1]);
-        vh.AddVert(vertices[2]);
-        vh.AddVert(vertices[3]);
-
-        vh.AddTriangle(0, 1, 2);
-        vh.AddTriangle(2, 3, 0);
-    }
-
-    private void DrawArrowHead(VertexHelper vh, Vector2 arrowBase, Vector2 lineEnd)
-    {
-        Vector2 direction = (lineEnd - arrowBase).normalized;
-        Vector2 perpendicular = new Vector2(-direction.y, direction.x) * arrowWidth;
-
-        Vector2 arrowTip = arrowBase + direction * arrowSize;
-        Vector2 arrowLeft = arrowBase - direction * (arrowSize * 0.5f) + perpendicular * (arrowSize * 0.5f);
-        Vector2 arrowRight = arrowBase - direction * (arrowSize * 0.5f) - perpendicular * (arrowSize * 0.5f);
-
-        UIVertex[] vertices = new UIVertex[3];
-        
-        vertices[0].position = arrowTip;
-        vertices[1].position = arrowLeft;
-        vertices[2].position = arrowRight;
-
-        for (int i = 0; i < 3; i++)
+        else
         {
-            vertices[i].color = color;
-            vertices[i].uv0 = Vector2.zero;
+            ConnectedSkillLocked();
         }
-
-        vh.AddVert(vertices[0]);
-        vh.AddVert(vertices[1]);
-        vh.AddVert(vertices[2]);
-
-        int vert = vh.currentVertCount; 
-        vh.AddTriangle(vert - 1, vert -2 , vert - 3);
+        
     }
 
-    protected override void OnRectTransformDimensionsChange()
+    public void ConnectedSkillLocked()
     {
-        base.OnRectTransformDimensionsChange();
-        SetVerticesDirty();
+        OnConnectedSkillLocked.Invoke();
+    }
+
+    public void ConnectedSkillUnlocked()
+    {
+        OnConnectedSkillUnlocked.Invoke();
+    }
+
+    void UpdateGraphics()
+    {
+        if (!lineTransform) return;
+        if (!slidingImageTransform) return;
+
+        Vector2 startPos = startPoint;
+        Vector2 endPos = endPoint;
+        Vector2 midpoint = (startPos + endPos) / 2f;
+
+        lineTransform.anchoredPosition = midpoint;
+        Vector2 direction = endPos - startPos;
+        float distance = direction.magnitude;
+
+        lineTransform.sizeDelta = new Vector2(distance, lineTransform.sizeDelta.y);
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        lineTransform.rotation = Quaternion.Euler(0f, 0f, angle);
+
+        slidingImageTransform.anchoredPosition = Vector2.Lerp(startPoint, endPoint, .5f);
+        slidingImageTransform.rotation = lineTransform.rotation;
     }
 }

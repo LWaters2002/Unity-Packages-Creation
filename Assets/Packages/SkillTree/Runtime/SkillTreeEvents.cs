@@ -7,9 +7,10 @@ namespace SkillTree.Runtime
     {
     }
 
-    public static class SkillTreeEventBus<TEventType> where  TEventType : ISkillTreeEvent
+    public static class SkillTreeEventBus<TEventType> where TEventType : ISkillTreeEvent
     {
         public static List<System.Action<TEventType>> Bindings = new();
+
         public static void RegisterCallback(Action<TEventType> callback)
         {
             Bindings.Add(callback);

@@ -6,11 +6,11 @@ public class SkillTreeListener : MonoBehaviour
 {
     void Awake()
     {
-        SkillTreeEventBus<UISkillLevelUp>.RegisterCallback(OnSkillLevelUp);
+        SkillTreeEventBus<ESkillNodeLevelUp>.RegisterCallback(OnSkillLevelUp);
     }
 
-    private void OnSkillLevelUp(UISkillLevelUp skill)
+    private void OnSkillLevelUp(ESkillNodeLevelUp skillNode)
     {
-        Debug.Log($"Skill [{skill.identifier}] Leveled up to Level {skill.newLevel}");
+        Debug.Log($"Skill [{skillNode.identifier}] Leveled up to Level {skillNode.newLevel}");
     }
 }

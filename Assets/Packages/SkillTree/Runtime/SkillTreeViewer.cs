@@ -99,12 +99,6 @@ namespace SkillTree.Runtime
 
         private void GenerateUI()
         {
-            GameObject arrowContainer = new GameObject("Arrows");
-
-            arrowContainer.transform.SetParent(contentContainer.transform);
-            arrowContainer.transform.localPosition = Vector3.zero;
-            arrowContainer.transform.localScale = Vector3.one;
-            
             foreach (SkillTreeNodeData nodeData in skillTreeAsset.Nodes)
             {
                 SkillTreeNode newNode =
@@ -114,10 +108,20 @@ namespace SkillTree.Runtime
                 Nodes.Add(nodeData.ID, newNode);
             }
 
-            foreach (KeyValuePair<string, SkillTreeNode> node in Nodes)
-            {
+            foreach (var node in Nodes)
                 node.Value.UpdateUnlockState();
-            }
+
+            GenerateArrows();
+        }
+
+        private void GenerateArrows()
+        {
+            GameObject arrowContainer = new GameObject("Arrows");
+
+            arrowContainer.transform.SetParent(contentContainer.transform);
+            arrowContainer.transform.SetAsFirstSibling();
+            arrowContainer.transform.localPosition = Vector3.zero;
+            arrowContainer.transform.localScale = Vector3.one;
 
             foreach (SkillTreeNodeData nodeData in skillTreeAsset.Nodes)
             {
@@ -132,8 +136,7 @@ namespace SkillTree.Runtime
                     SkillTreeArrowGraphic arrow = Instantiate(arrowPrefab, arrowContainer.transform)
                         .GetComponent<SkillTreeArrowGraphic>();
 
-                    arrow.StartPoint = parentNode.transform.localPosition;
-                    arrow.EndPoint = startNode.transform.localPosition;
+                    arrow.Init(parentNode, startNode);
                 }
             }
         }

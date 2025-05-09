@@ -26,6 +26,8 @@ namespace SkillTree.Editor
         private IntegerField _costField;
         private TextField _skillIdentifierTextField;
 
+        private bool _identifierFieldDirted = false;
+
         public SkillTreeEditorNodeInspector(SkillTreeGraphView graphView)
         {
             _graphView = graphView;
@@ -74,7 +76,11 @@ namespace SkillTree.Editor
             _bothParentsRequiredToggle.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
             _maxLevelField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
             _costField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
-            _skillIdentifierTextField.RegisterValueChangedCallback(_ => UpdateNodeWithInspectorDetails());
+            _skillIdentifierTextField.RegisterValueChangedCallback(_ =>
+            {
+                UpdateNodeWithInspectorDetails();
+                _identifierFieldDirted = true;
+            });
         }
 
         private void CreateTextFields()
@@ -134,6 +140,11 @@ namespace SkillTree.Editor
             if (_graphView.GetSkillTreeNodeDataIndex(SelectedNodes[0].ID) is not { } nodeData) return;
 
             _spriteImage.sprite = _spriteObjectField.value as Sprite;
+
+            if (_identifierFieldDirted == false || _skillIdentifierTextField.text == "")
+            {
+                _skillIdentifierTextField.SetValueWithoutNotify(_skillTitleTextField.text);
+            }
 
             NodeProperties properties = new NodeProperties()
             {
