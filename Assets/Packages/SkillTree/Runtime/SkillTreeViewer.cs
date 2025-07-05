@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+    using System.Collections.Generic;
 using System.Linq;
 using SkillTree.Runtime.UI;
 using TMPro;
@@ -26,7 +26,7 @@ namespace SkillTree.Runtime
         private GameObject contentContainer;
 
         [SerializeField] private Canvas canvas;
-
+        
         private SkillTreeControls _controls;
         private bool _isDragging;
 

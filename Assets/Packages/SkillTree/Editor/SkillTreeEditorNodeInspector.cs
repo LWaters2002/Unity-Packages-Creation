@@ -86,6 +86,7 @@ namespace SkillTree.Editor
         private void CreateTextFields()
         {
             _skillIdentifierTextField = new TextField("Skill Identifier");
+            _skillIdentifierTextField.SetEnabled(false);
             _skillTitleTextField = new TextField("Skill Title");
             _skillDescriptionTextField = new TextField("Skill Description")
             {
@@ -143,7 +144,11 @@ namespace SkillTree.Editor
 
             if (_identifierFieldDirted == false || _skillIdentifierTextField.text == "")
             {
-                _skillIdentifierTextField.SetValueWithoutNotify(_skillTitleTextField.text);
+                string newIdentifierField = _skillTitleTextField.text;
+                newIdentifierField = newIdentifierField.Replace(" ", "-");
+                newIdentifierField = newIdentifierField.ToLower();
+
+                _skillIdentifierTextField.SetValueWithoutNotify(newIdentifierField);
             }
 
             NodeProperties properties = new NodeProperties()

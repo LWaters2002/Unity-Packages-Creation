@@ -11,6 +11,6 @@ public class SkillTreeListener : MonoBehaviour
 
     private void OnSkillLevelUp(ESkillNodeLevelUp skillNode)
     {
-        Debug.Log($"Skill [{skillNode.identifier}] Leveled up to Level {skillNode.newLevel}");
+        Debug.Log($"Skill [{skillNode.Identifier}] Leveled up to Level {skillNode.NewLevel}");
     }
 }

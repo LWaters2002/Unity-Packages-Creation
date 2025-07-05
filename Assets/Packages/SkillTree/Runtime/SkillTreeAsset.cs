@@ -11,6 +11,19 @@ namespace SkillTree.Runtime
 
         public List<SkillTreeNodeData> Nodes => _nodes;
 
+        public bool GetNodeData(string id, out SkillTreeNodeData data)
+        {
+            data = null;
+
+            foreach (var node in _nodes.Where(node => node.ID == id))
+            {
+                data = node;            
+                return true;
+            }
+            
+            return false;
+        }
+        
         private void OnValidate()
         {
             foreach (SkillTreeNodeData node in _nodes)

@@ -1,51 +1,61 @@
+using System;
+using System.Collections.Generic;
 using SkillTree.Runtime;
 using SkillTree.Runtime.UI;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 [ExecuteAlways]
 public class SkillTreeArrowGraphic : MonoBehaviour
 {
-    public UnityEvent OnConnectedSkillLocked;
-    public UnityEvent OnConnectedSkillUnlocked;
-    
     [SerializeField] private bool shouldShowArrow = true;
     [SerializeField] private RectTransform lineTransform;
     [SerializeField] private RectTransform slidingImageTransform;
     [SerializeField] private Vector2 startPoint;
     [SerializeField] private Vector2 endPoint;
 
+    [SerializeField] private Color validParentColor;
+    [SerializeField] private Color invalidParentColor;
+    
     private void SetStartPoint(Vector2 point) => startPoint = point;
     private void SetEndPoint(Vector2 point) => endPoint = point;
 
-    public void Init(SkillTreeNode startNode, SkillTreeNode parentNode)
+    private SkillTreeNode startNode;
+    private SkillTreeNode endNode;
+
+    private System.Action<bool> UpdateColourDelegate;
+    
+    public void Init(SkillTreeNode startNode, SkillTreeNode endNode)
     {
+        this.startNode = startNode;
+        this.endNode = endNode;
+        
+        slidingImageTransform.gameObject.SetActive(shouldShowArrow);
+        
         SetStartPoint(startNode.transform.localPosition);
-        SetEndPoint(parentNode.transform.localPosition);
+        SetEndPoint(endNode.transform.localPosition);
 
         UpdateGraphics();
 
-        slidingImageTransform.gameObject.SetActive(shouldShowArrow);
+        UpdateColourDelegate = _ => UpdateColourFromUnlock();
+        endNode.OnStateUpdated += UpdateColourDelegate;
+        UpdateColourFromUnlock();
+    }
     
-        if (parentNode.GetIsUnlocked())
-        {
-            ConnectedSkillUnlocked();
-        }
-        else
-        {
-            ConnectedSkillLocked();
-        }
-        
+    public void OnDestroy()
+    {
+        endNode.OnStateUpdated -= UpdateColourDelegate;
     }
 
-    public void ConnectedSkillLocked()
+    // ReSharper disable Unity.PerformanceAnalysis
+    private void UpdateColourFromUnlock()
     {
-        OnConnectedSkillLocked.Invoke();
-    }
+        Image[] childImages = GetComponentsInChildren<Image>();
 
-    public void ConnectedSkillUnlocked()
-    {
-        OnConnectedSkillUnlocked.Invoke();
+        bool isValid = startNode.GetIsUnlocked() || endNode.GetIsUnlocked();
+        foreach (Image childImage in childImages)
+            childImage.color = isValid ? validParentColor : invalidParentColor;
     }
 
     void UpdateGraphics()

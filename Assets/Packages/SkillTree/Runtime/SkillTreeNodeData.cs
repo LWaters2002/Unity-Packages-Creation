@@ -30,6 +30,18 @@ namespace SkillTree.Runtime
         {
             Properties = properties;
         }
+
+        public SkillTreeNodeData CreateShallowCopy()
+        {
+            SkillTreeNodeData shallowCopy = new()
+            {
+                Properties = Properties,
+                ParentGuids = new List<string>(ParentGuids),
+                _position = Position
+            };
+
+            return shallowCopy;
+        }
     }
 
     [Serializable]

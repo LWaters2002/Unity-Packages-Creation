@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
 
 namespace SkillTree.Runtime
 {
@@ -9,6 +11,12 @@ namespace SkillTree.Runtime
 
     public static class SkillTreeEventBus<TEventType> where TEventType : ISkillTreeEvent
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void Initialize()
+        {
+            Bindings.Clear();
+        }
+
         public static List<System.Action<TEventType>> Bindings = new();
 
         public static void RegisterCallback(Action<TEventType> callback)
